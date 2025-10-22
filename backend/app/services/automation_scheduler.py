@@ -13,7 +13,10 @@ from app.models.automation_settings import AutomationSettings
 from app.models.campaign_interaction import CampaignInteraction
 from app.services.reddit_automation import reddit_automation
 from app.services.twitter_automation import twitter_automation
-from app.services.gemini_ai import generate_personalized_message
+from app.services.gemini_ai import GeminiAI
+
+# Initialize Gemini AI service
+gemini_ai = GeminiAI()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -157,16 +160,20 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
                 continue
 
             # Generate personalized message
-            personalized_message = generate_personalized_message(
-                product_name=campaign.product_name,
-                description=campaign.description,
-                target_audience=campaign.target_audience_hint or "professionals",
-                profile_data={
-                    "name": username,
-                    "platform": "reddit",
-                    "bio": f"Karma: {profile['link_karma']} / {profile['comment_karma']}",
-                    "recent_activity": str(profile.get('recent_comments', []))[:200]
-                }
+            campaign_data = {
+                "product_name": campaign.product_name,
+                "description": campaign.description,
+                "tone": campaign.tone or "friendly",
+                "cta": campaign.cta or "interested in learning more?"
+            }
+            profile_data = {
+                "name": username,
+                "title": "Reddit user",
+                "company": f"r/{profile.get('recent_comments', [{}])[0].get('subreddit', 'reddit') if profile.get('recent_comments') else 'reddit'}"
+            }
+            personalized_message = await gemini_ai.generate_personalized_message(
+                campaign_data=campaign_data,
+                profile_data=profile_data
             )
 
             # Send DM
@@ -238,17 +245,20 @@ async def process_twitter_job(job: AutomationJob, campaign, daily_limit: int, db
                 continue
 
             # Generate personalized message
-            personalized_message = generate_personalized_message(
-                product_name=campaign.product_name,
-                description=campaign.description,
-                target_audience=campaign.target_audience_hint or "professionals",
-                profile_data={
-                    "name": profile['name'],
-                    "platform": "twitter",
-                    "bio": profile.get('bio', ''),
-                    "followers": profile['followers_count'],
-                    "recent_activity": str(profile.get('recent_tweets', []))[:200]
-                }
+            campaign_data = {
+                "product_name": campaign.product_name,
+                "description": campaign.description,
+                "tone": campaign.tone or "friendly",
+                "cta": campaign.cta or "interested in learning more?"
+            }
+            profile_data = {
+                "name": profile['name'],
+                "title": profile.get('bio', 'Twitter user')[:50],
+                "company": "Twitter"
+            }
+            personalized_message = await gemini_ai.generate_personalized_message(
+                campaign_data=campaign_data,
+                profile_data=profile_data
             )
 
             # Send DM
