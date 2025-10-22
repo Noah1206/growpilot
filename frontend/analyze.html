@@ -1532,8 +1532,26 @@
                     }
                 });
 
+                // Handle 404 - job was deleted
+                if (response.status === 404) {
+                    console.log('⚠️ Job not found (404) - cleaning up UI');
+
+                    // Clear interval
+                    if (automationRefreshInterval) {
+                        clearInterval(automationRefreshInterval);
+                        automationRefreshInterval = null;
+                    }
+
+                    // Reset state
+                    currentAutomationJob = null;
+                    document.getElementById('automationStatus').style.display = 'none';
+                    document.getElementById('startAutomationBtn').style.display = 'block';
+                    return;
+                }
+
                 if (!response.ok) {
-                    throw new Error('Failed to load automation stats');
+                    console.error('❌ Failed to load automation stats:', response.status);
+                    throw new Error(`HTTP ${response.status}: Failed to load automation stats`);
                 }
 
                 const stats = await response.json();
@@ -1580,16 +1598,32 @@
                 document.getElementById('currentKeywords').textContent = currentAutomationJob.search_keywords;
 
             } catch (error) {
-                console.error('Error loading automation status:', error);
+                console.error('❌ Error loading automation status:', error);
+
+                // If job doesn't exist, clean up
+                if (!currentAutomationJob) {
+                    if (automationRefreshInterval) {
+                        clearInterval(automationRefreshInterval);
+                        automationRefreshInterval = null;
+                    }
+                }
             }
         }
 
         async function toggleAutomation() {
-            if (!currentAutomationJob) return;
+            console.log('⏯️ Toggle automation clicked');
+
+            if (!currentAutomationJob) {
+                console.error('❌ No current automation job found');
+                alert('No active automation job found');
+                return;
+            }
 
             try {
                 const currentStatus = document.getElementById('jobStatus').textContent.toLowerCase();
                 const endpoint = currentStatus === 'active' ? 'pause' : 'resume';
+
+                console.log(`🔄 ${endpoint.charAt(0).toUpperCase() + endpoint.slice(1)}ing automation...`);
 
                 const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}/${endpoint}`, {
                     method: 'PUT',
@@ -1598,59 +1632,93 @@
                     }
                 });
 
+                console.log('📡 Response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`Failed to ${endpoint} automation`);
+                    const errorText = await response.text().catch(() => 'Unknown error');
+                    console.error(`❌ Failed to ${endpoint}:`, response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const job = await response.json();
-                currentAutomationJob = job;
+                console.log('✅ Job updated:', job);
 
+                currentAutomationJob = job;
                 loadAutomationStatus();
-                addNotification('automation', `Automation ${endpoint}d`);
+                addNotification('automation', `Automation ${endpoint}d successfully`);
+                alert(`✅ Automation ${endpoint}d successfully`);
 
             } catch (error) {
-                console.error('Error toggling automation:', error);
-                alert(`Failed to ${currentStatus === 'active' ? 'pause' : 'resume'} automation`);
+                const action = document.getElementById('jobStatus').textContent.toLowerCase() === 'active' ? 'pause' : 'resume';
+                console.error(`❌ Error ${action}ing automation:`, error);
+                alert(`Failed to ${action} automation: ${error.message}`);
             }
         }
 
         async function stopAutomation() {
-            if (!currentAutomationJob) return;
+            console.log('🛑 Stop button clicked');
 
-            if (!confirm('Are you sure you want to stop the automation? This will delete the job.')) {
+            if (!currentAutomationJob) {
+                console.error('❌ No current automation job found');
+                alert('No active automation job found');
                 return;
             }
 
+            console.log('📋 Current job ID:', currentAutomationJob.id);
+
+            if (!confirm('Are you sure you want to stop the automation? This will delete the job.')) {
+                console.log('❌ User cancelled stop action');
+                return;
+            }
+
+            // Clear interval FIRST to prevent race conditions
+            if (automationRefreshInterval) {
+                console.log('⏸️ Clearing refresh interval');
+                clearInterval(automationRefreshInterval);
+                automationRefreshInterval = null;
+            }
+
+            const jobId = currentAutomationJob.id;
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}`, {
+                console.log(`🔄 Sending DELETE request to: ${API_BASE_URL}/api/automation/jobs/${jobId}`);
+
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${jobId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to stop automation');
+                console.log('📡 Response status:', response.status);
+
+                // 204 No Content is success for DELETE
+                if (response.status === 204 || response.ok) {
+                    console.log('✅ Automation stopped successfully');
+
+                    // Reset UI
+                    currentAutomationJob = null;
+                    document.getElementById('automationStatus').style.display = 'none';
+                    document.getElementById('startAutomationBtn').style.display = 'block';
+                    document.getElementById('automationKeywords').value = '';
+
+                    addNotification('automation', 'Automation stopped');
+                    alert('✅ Automation stopped successfully');
+                } else {
+                    const errorText = await response.text().catch(() => 'Unknown error');
+                    console.error('❌ Failed to stop automation:', response.status, errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
-
-                // Clear interval
-                if (automationRefreshInterval) {
-                    clearInterval(automationRefreshInterval);
-                    automationRefreshInterval = null;
-                }
-
-                // Reset UI
-                currentAutomationJob = null;
-                document.getElementById('automationStatus').style.display = 'none';
-                document.getElementById('startAutomationBtn').style.display = 'block';
-                document.getElementById('automationKeywords').value = '';
-
-                addNotification('automation', 'Automation stopped');
-                alert('Automation stopped successfully');
 
             } catch (error) {
-                console.error('Error stopping automation:', error);
-                alert('Failed to stop automation');
+                console.error('❌ Error stopping automation:', error);
+                alert(`Failed to stop automation: ${error.message}`);
+
+                // Restart interval if stop failed
+                if (!automationRefreshInterval && currentAutomationJob) {
+                    console.log('🔄 Restarting refresh interval after error');
+                    automationRefreshInterval = setInterval(loadAutomationStatus, 5000);
+                }
             }
         }
 
