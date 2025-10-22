@@ -75,12 +75,19 @@ async def health_check():
 
 
 # Include routers
+print("📋 Registering API routers...")
 app.include_router(auth.router)
+print("  ✅ Auth router registered")
 app.include_router(agents.router)
+print("  ✅ Agents router registered")
 app.include_router(campaigns.router)
+print(f"  ✅ Campaigns router registered: {campaigns.router.prefix}")
 app.include_router(tracking.router)
+print("  ✅ Tracking router registered")
 app.include_router(analytics.router)
+print("  ✅ Analytics router registered")
 app.include_router(automation.router)
+print("  ✅ Automation router registered")
 # app.include_router(reddit.router)
 # app.include_router(twitter.router)
 
