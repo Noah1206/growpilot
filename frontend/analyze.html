@@ -361,6 +361,83 @@
             margin-bottom: 12px;
         }
 
+        /* Activity Feed Styles */
+        .activity-log-item {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .activity-log-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-color: var(--color-accent);
+        }
+
+        .activity-log-item.success {
+            border-left: 4px solid #10B981;
+            background: #F0FDF4;
+        }
+
+        .activity-log-item.failed {
+            border-left: 4px solid #EF4444;
+            background: #FEF2F2;
+        }
+
+        .activity-log-item.sending {
+            border-left: 4px solid #3B82F6;
+            background: #EFF6FF;
+        }
+
+        .activity-log-item.searching {
+            border-left: 4px solid #8B5CF6;
+            background: #F5F3FF;
+        }
+
+        .activity-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .activity-log-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #111;
+        }
+
+        .activity-log-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .activity-log-details {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .activity-log-message {
+            background: white;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #333;
+            border-left: 2px solid #E5E7EB;
+        }
+
+        .activity-log-error {
+            background: #FEE2E2;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #991B1B;
+        }
+
         /* Loading Spinner */
         .loading-spinner {
             display: inline-block;
@@ -713,19 +790,18 @@
                 </div>
 
                 <div class="card">
-                    <h2>Selected Prospects (<span id="selectedCount">0</span>)</h2>
-
-                    <div class="prospect-list" id="selectedProspectsList">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📤</div>
-                            <p>No prospects selected<br>Go to Search tab to find prospects</p>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 style="margin: 0;">Activity Feed</h2>
+                        <span id="activityStatus" style="font-size: 13px; color: #666;">
+                            🔄 Auto-updating
+                        </span>
                     </div>
 
-                    <div id="outreachActions" style="display: none; margin-top: 16px;">
-                        <button onclick="sendToSelected()" class="btn btn-primary" style="width: 100%;">
-                            📤 Send to Selected (<span id="sendCount">0</span>)
-                        </button>
+                    <div id="activityFeed" style="max-height: 600px; overflow-y: auto;">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>No activity yet<br>Start automation to see real-time updates</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1597,6 +1673,9 @@
                 document.getElementById('startAutomationBtn').style.display = 'none';
                 document.getElementById('currentKeywords').textContent = currentAutomationJob.search_keywords;
 
+                // Load activity feed
+                loadActivityFeed();
+
             } catch (error) {
                 console.error('❌ Error loading automation status:', error);
 
@@ -1720,6 +1799,117 @@
                     automationRefreshInterval = setInterval(loadAutomationStatus, 5000);
                 }
             }
+        }
+
+        async function loadActivityFeed() {
+            if (!currentAutomationJob) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}/logs?limit=50`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load activity logs:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                displayActivityLogs(data.logs);
+
+            } catch (error) {
+                console.error('Error loading activity feed:', error);
+            }
+        }
+
+        function displayActivityLogs(logs) {
+            const feedContainer = document.getElementById('activityFeed');
+
+            if (!logs || logs.length === 0) {
+                feedContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>No activity yet<br>Automation will update here in real-time</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Reverse to show newest first
+            const sortedLogs = [...logs].reverse();
+
+            feedContainer.innerHTML = sortedLogs.map(log => {
+                const time = new Date(log.timestamp).toLocaleTimeString();
+                let statusClass = '';
+                let icon = '';
+                let title = '';
+                let details = '';
+
+                switch (log.log_type) {
+                    case 'search_start':
+                        statusClass = 'searching';
+                        icon = '🔍';
+                        title = `Searching ${log.metadata?.subreddit ? 'r/' + log.metadata.subreddit : 'users'}`;
+                        details = `Keywords: ${log.metadata?.keywords || 'N/A'}`;
+                        break;
+
+                    case 'search_complete':
+                        statusClass = 'success';
+                        icon = '✅';
+                        title = `Search Complete`;
+                        details = `Found ${log.metadata?.users_found || 0} unique users`;
+                        break;
+
+                    case 'send_progress':
+                        statusClass = 'sending';
+                        icon = '⏳';
+                        title = `Sending to u/${log.username}`;
+                        details = `${log.platform_info?.subreddit ? 'r/' + log.platform_info.subreddit : ''} • ${log.platform_info?.karma || 0} karma`;
+                        break;
+
+                    case 'send_success':
+                        statusClass = 'success';
+                        icon = '✅';
+                        title = `Sent to u/${log.username}`;
+                        details = `${log.platform_info?.subreddit ? 'r/' + log.platform_info.subreddit : ''} • ${log.platform_info?.karma || 0} karma`;
+                        break;
+
+                    case 'send_fail':
+                        statusClass = 'failed';
+                        icon = '❌';
+                        title = `Failed to u/${log.username}`;
+                        details = log.error_message || 'Failed to send DM';
+                        break;
+
+                    default:
+                        statusClass = '';
+                        icon = '📝';
+                        title = log.log_type;
+                        details = '';
+                }
+
+                let html = `
+                    <div class="activity-log-item ${statusClass}">
+                        <div class="activity-log-header">
+                            <div class="activity-log-title">${icon} ${title}</div>
+                            <div class="activity-log-time">${time}</div>
+                        </div>
+                        <div class="activity-log-details">${details}</div>
+                `;
+
+                if (log.message_preview) {
+                    html += `<div class="activity-log-message">💬 ${log.message_preview}</div>`;
+                }
+
+                if (log.error_message && log.log_type === 'send_fail') {
+                    html += `<div class="activity-log-error">⚠️ ${log.error_message}</div>`;
+                }
+
+                html += `</div>`;
+                return html;
+            }).join('');
         }
 
         function handleLogout() {
