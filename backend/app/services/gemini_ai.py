@@ -16,7 +16,7 @@ class GeminiAI:
             api_key = settings.gemini_api_key
             if api_key:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-pro')
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
                 logger.info("✅ Gemini AI initialized successfully")
             else:
                 self.model = None
