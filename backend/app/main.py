@@ -52,20 +52,24 @@ app = FastAPI(
 )
 
 # Configure CORS
-# Allow Railway frontend subdomains using regex
-allow_origin_regex = r"https://.*\.up\.railway\.app"
-
 # Build comprehensive origins list
-allowed_origins = settings.cors_origins.copy()
-# Ensure Railway frontend domain is included
-railway_frontend = "https://growpilot-production-9e97.up.railway.app"
-if railway_frontend not in allowed_origins:
-    allowed_origins.append(railway_frontend)
+allowed_origins = [
+    "http://localhost:9000",
+    "http://127.0.0.1:9000",
+    "https://growthpilot-production.up.railway.app",
+    "https://growpilot-production-9e97.up.railway.app"
+]
+
+# Add any additional origins from settings
+for origin in settings.cors_origins:
+    if origin not in allowed_origins:
+        allowed_origins.append(origin)
+
+print(f"🌐 CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
