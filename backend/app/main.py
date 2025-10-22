@@ -1,7 +1,9 @@
 """Main FastAPI application."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from pathlib import Path
 from dotenv import load_dotenv
 from app.core.config import settings
 from app.api import agents, campaigns, auth, tracking, analytics
@@ -52,6 +54,11 @@ app.include_router(analytics.router)
 # app.include_router(automation.router)
 # app.include_router(reddit.router)
 # app.include_router(twitter.router)
+
+# Mount static files (frontend) - only if frontend directory exists
+frontend_path = Path(__file__).parent.parent.parent / "frontend"
+if frontend_path.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
 
 
 @app.get("/health")
