@@ -627,6 +627,19 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Platform *</label>
+                        <select
+                            id="automationPlatform"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+                        >
+                            <option value="">-- Select a platform --</option>
+                            <option value="reddit">Reddit</option>
+                            <option value="twitter">Twitter (X)</option>
+                        </select>
+                        <span class="field-hint">Choose which platform to automate</span>
+                    </div>
+
+                    <div class="form-group">
                         <label>Search Keywords *</label>
                         <input
                             type="text"
@@ -1384,12 +1397,18 @@
             }
 
             const campaignId = document.getElementById('automationCampaignSelect').value;
+            const platform = document.getElementById('automationPlatform').value;
             const keywords = document.getElementById('automationKeywords').value.trim();
             const message = document.getElementById('messageTemplate').value.trim();
 
             // Validation
             if (!campaignId) {
                 alert('캠페인을 선택해주세요 (Please select a campaign)');
+                return;
+            }
+
+            if (!platform) {
+                alert('플랫폼을 선택해주세요 (Please select a platform)');
                 return;
             }
 
@@ -1415,9 +1434,11 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        campaign_id: parseInt(campaignId),  // Include campaign_id
+                        campaign_id: parseInt(campaignId),
+                        platform: platform,
                         search_keywords: keywords,
-                        message_template: message
+                        message_template: message,
+                        daily_limit: 20
                     })
                 });
 
@@ -1457,9 +1478,6 @@
         }
 
         async function loadAutomationStatus() {
-            // TODO: Re-enable when automation jobs API is restored
-            return; // Automation jobs endpoint temporarily disabled
-
             if (!currentAutomationJob) {
                 // Try to load existing jobs
                 const response = await fetch(`${API_BASE_URL}/api/automation/jobs`, {

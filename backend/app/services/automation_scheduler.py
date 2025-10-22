@@ -8,12 +8,12 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.database import SessionLocal
+from app.models.automation_job import AutomationJob
 from app.models.automation_settings import AutomationSettings
 from app.models.campaign_interaction import CampaignInteraction
-# Lazy imports to avoid circular dependencies - not needed for basic API functionality
-# from app.services.reddit_automation import reddit_automation
-# from app.services.twitter_automation import twitter_automation
-# from app.services.gemini_ai import generate_personalized_message
+from app.services.reddit_automation import reddit_automation
+from app.services.twitter_automation import twitter_automation
+from app.services.gemini_ai import generate_personalized_message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
             personalized_message = generate_personalized_message(
                 product_name=campaign.product_name,
                 description=campaign.description,
-                target_audience=campaign.target_audience,
+                target_audience=campaign.target_audience_hint or "professionals",
                 profile_data={
                     "name": username,
                     "platform": "reddit",
@@ -241,7 +241,7 @@ async def process_twitter_job(job: AutomationJob, campaign, daily_limit: int, db
             personalized_message = generate_personalized_message(
                 product_name=campaign.product_name,
                 description=campaign.description,
-                target_audience=campaign.target_audience,
+                target_audience=campaign.target_audience_hint or "professionals",
                 profile_data={
                     "name": profile['name'],
                     "platform": "twitter",
@@ -293,10 +293,9 @@ async def process_all_active_jobs():
     """Process all active automation jobs."""
     db = SessionLocal()
     try:
-        # Get all active jobs
+        # Get all active jobs (Reddit/Twitter only)
         active_jobs = db.query(AutomationJob).filter(
-            AutomationJob.status == "active",
-            AutomationJob.automation_mode == "api"  # API mode for Reddit/Twitter
+            AutomationJob.status == "active"
         ).all()
 
         logger.info(f"Found {len(active_jobs)} active automation jobs")

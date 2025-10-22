@@ -12,6 +12,20 @@ class Settings(BaseSettings):
     supabase_url: Optional[str] = Field(default=None, env="SUPABASE_URL")
     supabase_key: Optional[str] = Field(default=None, env="SUPABASE_KEY")
 
+    # Reddit API Credentials
+    reddit_client_id: str = Field(default="", env="REDDIT_CLIENT_ID")
+    reddit_client_secret: str = Field(default="", env="REDDIT_CLIENT_SECRET")
+    reddit_user_agent: str = Field(default="GrowthPilot/1.0", env="REDDIT_USER_AGENT")
+    reddit_username: str = Field(default="", env="REDDIT_USERNAME")
+    reddit_password: str = Field(default="", env="REDDIT_PASSWORD")
+
+    # Twitter API Credentials
+    twitter_api_key: str = Field(default="", env="TWITTER_API_KEY")
+    twitter_api_secret: str = Field(default="", env="TWITTER_API_SECRET")
+    twitter_access_token: str = Field(default="", env="TWITTER_ACCESS_TOKEN")
+    twitter_access_secret: str = Field(default="", env="TWITTER_ACCESS_SECRET")
+    twitter_bearer_token: str = Field(default="", env="TWITTER_BEARER_TOKEN")
+
     # Database
     database_url: str = Field(default="sqlite:///./growthpilot.db", env="DATABASE_URL")
 

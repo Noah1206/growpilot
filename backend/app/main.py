@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.api import agents, campaigns, auth, tracking, analytics, automation
 # from app.api import reddit, twitter
-# from app.services.automation_scheduler import start_scheduler, stop_scheduler
+from app.services.automation_scheduler import start_scheduler, stop_scheduler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,6 +20,7 @@ from app.models.campaign import Campaign
 from app.models.user import User
 from app.models.campaign_interaction import CampaignInteraction
 from app.models.link_click import LinkClick
+from app.models.automation_job import AutomationJob
 
 
 @asynccontextmanager
@@ -33,11 +34,17 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("✅ Database tables created successfully!")
 
-    # start_scheduler()
+    # Start automation scheduler
+    print("🔄 Starting automation scheduler...")
+    start_scheduler()
+    print("✅ Automation scheduler started!")
+
     yield
+
     # Shutdown
     print("🛑 Shutting down GrowthPilot API...")
-    # stop_scheduler()
+    stop_scheduler()
+    print("✅ Automation scheduler stopped!")
 
 
 # Create FastAPI app

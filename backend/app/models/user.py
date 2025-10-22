@@ -24,6 +24,7 @@ class User(Base):
 
     # Relationships
     # campaigns = relationship("Campaign", back_populates="user")
+    automation_jobs = relationship("AutomationJob", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}')>"

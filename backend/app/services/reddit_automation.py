@@ -1,9 +1,9 @@
 """Reddit Automation Service using PRAW (Python Reddit API Wrapper)."""
-import os
 import praw
 from typing import List, Dict, Optional
 from datetime import datetime
 import logging
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +20,18 @@ class RedditAutomation:
     """
 
     def __init__(self):
-        """Initialize Reddit API client with credentials from .env."""
-        client_id = os.getenv('REDDIT_CLIENT_ID')
-        client_secret = os.getenv('REDDIT_CLIENT_SECRET')
-
-        if not client_id or not client_secret or client_id == 'placeholder':
+        """Initialize Reddit API client with credentials from settings."""
+        if not settings.reddit_client_id or not settings.reddit_client_secret or settings.reddit_client_id == 'placeholder':
             logger.warning("Reddit API credentials not configured. Reddit automation disabled.")
             self.reddit = None
             return
 
         self.reddit = praw.Reddit(
-            client_id=client_id,
-            client_secret=client_secret,
-            user_agent=os.getenv('REDDIT_USER_AGENT', 'GrowthPilot/1.0'),
-            username=os.getenv('REDDIT_USERNAME'),
-            password=os.getenv('REDDIT_PASSWORD')
+            client_id=settings.reddit_client_id,
+            client_secret=settings.reddit_client_secret,
+            user_agent=settings.reddit_user_agent,
+            username=settings.reddit_username,
+            password=settings.reddit_password
         )
 
         # Verify authentication

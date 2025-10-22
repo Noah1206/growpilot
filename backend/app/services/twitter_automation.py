@@ -1,9 +1,9 @@
 """Twitter/X.com Automation Service using Tweepy."""
-import os
 import tweepy
 from typing import List, Dict, Optional
 from datetime import datetime
 import logging
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +20,18 @@ class TwitterAutomation:
     """
 
     def __init__(self):
-        """Initialize Twitter API client with credentials from .env."""
-        api_key = os.getenv('TWITTER_API_KEY')
-        api_secret = os.getenv('TWITTER_API_SECRET')
-
-        if not api_key or not api_secret:
+        """Initialize Twitter API client with credentials from settings."""
+        if not settings.twitter_api_key or not settings.twitter_api_secret:
             logger.warning("Twitter API credentials not configured. Twitter automation disabled.")
             self.api = None
             self.client = None
             return
 
         # OAuth 1.0a Authentication
-        auth = tweepy.OAuthHandler(api_key, api_secret)
+        auth = tweepy.OAuthHandler(settings.twitter_api_key, settings.twitter_api_secret)
         auth.set_access_token(
-            os.getenv('TWITTER_ACCESS_TOKEN'),
-            os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+            settings.twitter_access_token,
+            settings.twitter_access_secret
         )
 
         # Create API v1.1 client (for DMs and some user data)
@@ -42,11 +39,11 @@ class TwitterAutomation:
 
         # Create API v2 client (for modern search)
         self.client = tweepy.Client(
-            bearer_token=os.getenv('TWITTER_BEARER_TOKEN'),
-            consumer_key=os.getenv('TWITTER_API_KEY'),
-            consumer_secret=os.getenv('TWITTER_API_SECRET'),
-            access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
-            access_token_secret=os.getenv('TWITTER_ACCESS_TOKEN_SECRET'),
+            bearer_token=settings.twitter_bearer_token,
+            consumer_key=settings.twitter_api_key,
+            consumer_secret=settings.twitter_api_secret,
+            access_token=settings.twitter_access_token,
+            access_token_secret=settings.twitter_access_secret,
             wait_on_rate_limit=True
         )
 
