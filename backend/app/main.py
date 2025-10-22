@@ -8,8 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from app.core.config import settings
 from app.core.database import engine, Base
-from app.api import agents, campaigns, auth, tracking, analytics
-# from app.api import automation, reddit, twitter
+from app.api import agents, campaigns, auth, tracking, analytics, automation
+# from app.api import reddit, twitter
 # from app.services.automation_scheduler import start_scheduler, stop_scheduler
 
 # Load environment variables from .env file
@@ -81,7 +81,7 @@ app.include_router(agents.router)
 app.include_router(campaigns.router)
 app.include_router(tracking.router)
 app.include_router(analytics.router)
-# app.include_router(automation.router)
+app.include_router(automation.router)
 # app.include_router(reddit.router)
 # app.include_router(twitter.router)
 
