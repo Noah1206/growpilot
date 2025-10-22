@@ -10,6 +10,7 @@ class AutomationJobCreate(BaseModel):
     platform: str = Field(..., description="Platform: reddit or twitter")
     search_keywords: str = Field(..., min_length=1, max_length=500)
     message_template: str = Field(..., min_length=1)
+    use_ai_enhancement: bool = Field(default=False, description="Use AI to enhance the message template")
     daily_limit: int = Field(default=20, ge=1, le=100)
 
 

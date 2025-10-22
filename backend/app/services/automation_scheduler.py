@@ -160,21 +160,27 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
                 continue
 
             # Generate personalized message
-            campaign_data = {
-                "product_name": campaign.product_name,
-                "description": campaign.description,
-                "tone": campaign.tone or "friendly",
-                "cta": campaign.cta or "interested in learning more?"
-            }
-            profile_data = {
-                "name": username,
-                "title": "Reddit user",
-                "company": f"r/{profile.get('recent_comments', [{}])[0].get('subreddit', 'reddit') if profile.get('recent_comments') else 'reddit'}"
-            }
-            personalized_message = await gemini_ai.generate_personalized_message(
-                campaign_data=campaign_data,
-                profile_data=profile_data
-            )
+            if job.use_ai_enhancement:
+                # Use AI to enhance the template
+                campaign_data = {
+                    "product_name": campaign.product_name,
+                    "description": campaign.description,
+                    "tone": campaign.tone or "friendly",
+                    "cta": campaign.cta or "interested in learning more?"
+                }
+                profile_data = {
+                    "name": username,
+                    "title": "Reddit user",
+                    "company": f"r/{profile.get('recent_comments', [{}])[0].get('subreddit', 'reddit') if profile.get('recent_comments') else 'reddit'}"
+                }
+                personalized_message = await gemini_ai.generate_personalized_message(
+                    campaign_data=campaign_data,
+                    profile_data=profile_data
+                )
+            else:
+                # Use template as-is with simple placeholder replacement
+                personalized_message = job.message_template.replace("{username}", username)
+                personalized_message = personalized_message.replace("{name}", username)
 
             # Send DM
             success = await reddit_automation.send_dm(
@@ -245,21 +251,27 @@ async def process_twitter_job(job: AutomationJob, campaign, daily_limit: int, db
                 continue
 
             # Generate personalized message
-            campaign_data = {
-                "product_name": campaign.product_name,
-                "description": campaign.description,
-                "tone": campaign.tone or "friendly",
-                "cta": campaign.cta or "interested in learning more?"
-            }
-            profile_data = {
-                "name": profile['name'],
-                "title": profile.get('bio', 'Twitter user')[:50],
-                "company": "Twitter"
-            }
-            personalized_message = await gemini_ai.generate_personalized_message(
-                campaign_data=campaign_data,
-                profile_data=profile_data
-            )
+            if job.use_ai_enhancement:
+                # Use AI to enhance the template
+                campaign_data = {
+                    "product_name": campaign.product_name,
+                    "description": campaign.description,
+                    "tone": campaign.tone or "friendly",
+                    "cta": campaign.cta or "interested in learning more?"
+                }
+                profile_data = {
+                    "name": profile['name'],
+                    "title": profile.get('bio', 'Twitter user')[:50],
+                    "company": "Twitter"
+                }
+                personalized_message = await gemini_ai.generate_personalized_message(
+                    campaign_data=campaign_data,
+                    profile_data=profile_data
+                )
+            else:
+                # Use template as-is with simple placeholder replacement
+                personalized_message = job.message_template.replace("{username}", username)
+                personalized_message = personalized_message.replace("{name}", profile['name'])
 
             # Send DM
             success = await twitter_automation.send_dm(

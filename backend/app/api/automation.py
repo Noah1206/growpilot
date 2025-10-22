@@ -153,6 +153,7 @@ async def start_automation_job(
         platform=job_data.platform,
         search_keywords=job_data.search_keywords,
         message_template=job_data.message_template,
+        use_ai_enhancement=job_data.use_ai_enhancement,
         status="active",
         daily_limit=job_data.daily_limit,
         total_sent_count=0,

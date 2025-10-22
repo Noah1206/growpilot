@@ -20,6 +20,7 @@ class AutomationJob(Base):
     # Search and targeting
     search_keywords = Column(Text, nullable=False)
     message_template = Column(Text, nullable=False)
+    use_ai_enhancement = Column(Boolean, default=False)  # Use AI to enhance message template
 
     # Status and limits
     status = Column(String(50), default="active")  # active, paused, stopped, error

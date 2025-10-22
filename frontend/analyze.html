@@ -602,7 +602,24 @@
                             rows="8"
                             placeholder="Your personalized outreach message..."
                         ></textarea>
-                        <span class="field-hint">AI will personalize this for each prospect</span>
+                        <span class="field-hint">Use {name} or {username} for personalization</span>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label style="display: flex; align-items: center; cursor: pointer; font-weight: normal;">
+                            <input
+                                type="checkbox"
+                                id="useAiEnhancement"
+                                style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;"
+                            />
+                            <span style="flex: 1;">
+                                <strong>Use AI to enhance this message</strong>
+                                <div style="font-size: 13px; color: #666; margin-top: 4px; font-weight: normal;">
+                                    AI will make your template more professional and personalized for each recipient.
+                                    Uncheck to send your template exactly as written.
+                                </div>
+                            </span>
+                        </label>
                     </div>
 
                     <button onclick="generateMessage()" class="btn btn-secondary" style="width: 100%;">
@@ -1400,6 +1417,7 @@
             const platform = document.getElementById('automationPlatform').value;
             const keywords = document.getElementById('automationKeywords').value.trim();
             const message = document.getElementById('messageTemplate').value.trim();
+            const useAiEnhancement = document.getElementById('useAiEnhancement').checked;
 
             // Validation
             if (!campaignId) {
@@ -1438,6 +1456,7 @@
                         platform: platform,
                         search_keywords: keywords,
                         message_template: message,
+                        use_ai_enhancement: useAiEnhancement,
                         daily_limit: 20
                     })
                 });
