@@ -45,20 +45,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router)
-app.include_router(agents.router)
-app.include_router(campaigns.router)
-app.include_router(tracking.router)
-app.include_router(analytics.router)
-# app.include_router(automation.router)
-# app.include_router(reddit.router)
-# app.include_router(twitter.router)
-
-# Mount static files (frontend) - only if frontend directory exists
-frontend_path = Path(__file__).parent.parent.parent / "frontend"
-if frontend_path.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+# API Endpoints (must be defined BEFORE static files)
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {
+        "message": "Welcome to GrowthPilot API",
+        "docs": "/docs",
+        "health": "/health"
+    }
 
 
 @app.get("/health")
@@ -71,11 +66,18 @@ async def health_check():
     }
 
 
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "Welcome to GrowthPilot API",
-        "docs": "/docs",
-        "health": "/health"
-    }
+# Include routers
+app.include_router(auth.router)
+app.include_router(agents.router)
+app.include_router(campaigns.router)
+app.include_router(tracking.router)
+app.include_router(analytics.router)
+# app.include_router(automation.router)
+# app.include_router(reddit.router)
+# app.include_router(twitter.router)
+
+# Mount static files (frontend) at /static path - must be LAST
+# Note: Mounting at "/" would override all API routes
+frontend_path = Path(__file__).parent.parent.parent / "frontend"
+if frontend_path.exists():
+    app.mount("/static", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
