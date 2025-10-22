@@ -22,25 +22,28 @@ class RedditAutomation:
     def __init__(self):
         """Initialize Reddit API client with credentials from settings."""
         if not settings.reddit_client_id or not settings.reddit_client_secret or settings.reddit_client_id == 'placeholder':
-            logger.warning("Reddit API credentials not configured. Reddit automation disabled.")
+            logger.warning("⚠️ Reddit API credentials not configured. Reddit automation disabled.")
             self.reddit = None
+            self.username = None
             return
 
-        self.reddit = praw.Reddit(
-            client_id=settings.reddit_client_id,
-            client_secret=settings.reddit_client_secret,
-            user_agent=settings.reddit_user_agent,
-            username=settings.reddit_username,
-            password=settings.reddit_password
-        )
-
-        # Verify authentication
         try:
+            self.reddit = praw.Reddit(
+                client_id=settings.reddit_client_id,
+                client_secret=settings.reddit_client_secret,
+                user_agent=settings.reddit_user_agent,
+                username=settings.reddit_username,
+                password=settings.reddit_password
+            )
+
+            # Verify authentication
             self.username = self.reddit.user.me().name
             logger.info(f"✅ Reddit authenticated as: {self.username}")
         except Exception as e:
             logger.error(f"❌ Reddit authentication failed: {e}")
-            raise
+            logger.warning("⚠️ Reddit automation will be disabled. App will continue running.")
+            self.reddit = None
+            self.username = None
 
     async def search_subreddit(
         self,
@@ -61,6 +64,10 @@ class RedditAutomation:
         Returns:
             List of post dictionaries with user data
         """
+        if not self.reddit:
+            logger.error("Reddit API not initialized. Cannot search subreddit.")
+            return []
+
         try:
             logger.info(f"🔍 Searching r/{subreddit_name} for: {keywords}")
 
@@ -108,6 +115,10 @@ class RedditAutomation:
         Returns:
             List of comment dictionaries with user data
         """
+        if not self.reddit:
+            logger.error("Reddit API not initialized. Cannot search comments.")
+            return []
+
         try:
             logger.info(f"🔍 Searching comments in r/{subreddit_name} for: {keywords}")
 
@@ -148,6 +159,10 @@ class RedditAutomation:
         Returns:
             User profile dictionary or None if not found
         """
+        if not self.reddit:
+            logger.error("Reddit API not initialized. Cannot get user profile.")
+            return None
+
         try:
             user = self.reddit.redditor(username)
 
@@ -195,6 +210,10 @@ class RedditAutomation:
         Returns:
             True if successful, False otherwise
         """
+        if not self.reddit:
+            logger.error("Reddit API not initialized. Cannot send DM.")
+            return False
+
         try:
             logger.info(f"📧 Sending DM to u/{username}")
 
@@ -237,6 +256,10 @@ class RedditAutomation:
         Returns:
             True if connection is working, False otherwise
         """
+        if not self.reddit:
+            logger.error("Reddit API not initialized.")
+            return False
+
         try:
             user = self.reddit.user.me()
             logger.info(f"✅ Reddit connection test successful: {user.name}")

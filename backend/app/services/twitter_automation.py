@@ -22,39 +22,43 @@ class TwitterAutomation:
     def __init__(self):
         """Initialize Twitter API client with credentials from settings."""
         if not settings.twitter_api_key or not settings.twitter_api_secret:
-            logger.warning("Twitter API credentials not configured. Twitter automation disabled.")
+            logger.warning("⚠️ Twitter API credentials not configured. Twitter automation disabled.")
             self.api = None
             self.client = None
+            self.username = None
             return
 
-        # OAuth 1.0a Authentication
-        auth = tweepy.OAuthHandler(settings.twitter_api_key, settings.twitter_api_secret)
-        auth.set_access_token(
-            settings.twitter_access_token,
-            settings.twitter_access_secret
-        )
-
-        # Create API v1.1 client (for DMs and some user data)
-        self.api = tweepy.API(auth, wait_on_rate_limit=True)
-
-        # Create API v2 client (for modern search)
-        self.client = tweepy.Client(
-            bearer_token=settings.twitter_bearer_token,
-            consumer_key=settings.twitter_api_key,
-            consumer_secret=settings.twitter_api_secret,
-            access_token=settings.twitter_access_token,
-            access_token_secret=settings.twitter_access_secret,
-            wait_on_rate_limit=True
-        )
-
-        # Verify authentication
         try:
+            # OAuth 1.0a Authentication
+            auth = tweepy.OAuthHandler(settings.twitter_api_key, settings.twitter_api_secret)
+            auth.set_access_token(
+                settings.twitter_access_token,
+                settings.twitter_access_secret
+            )
+
+            # Create API v1.1 client (for DMs and some user data)
+            self.api = tweepy.API(auth, wait_on_rate_limit=True)
+
+            # Create API v2 client (for modern search)
+            self.client = tweepy.Client(
+                bearer_token=settings.twitter_bearer_token,
+                consumer_key=settings.twitter_api_key,
+                consumer_secret=settings.twitter_api_secret,
+                access_token=settings.twitter_access_token,
+                access_token_secret=settings.twitter_access_secret,
+                wait_on_rate_limit=True
+            )
+
+            # Verify authentication
             user = self.api.verify_credentials()
             self.username = user.screen_name
             logger.info(f"✅ Twitter authenticated as: @{self.username}")
         except Exception as e:
             logger.error(f"❌ Twitter authentication failed: {e}")
-            raise
+            logger.warning("⚠️ Twitter automation will be disabled. App will continue running.")
+            self.api = None
+            self.client = None
+            self.username = None
 
     async def search_tweets(
         self,
@@ -73,6 +77,10 @@ class TwitterAutomation:
         Returns:
             List of tweet dictionaries with user data
         """
+        if not self.client:
+            logger.error("Twitter API not initialized. Cannot search tweets.")
+            return []
+
         try:
             logger.info(f"🔍 Searching tweets for: {keywords}")
 
@@ -142,6 +150,10 @@ class TwitterAutomation:
         Returns:
             User profile dictionary or None if not found
         """
+        if not self.client:
+            logger.error("Twitter API not initialized. Cannot get user profile.")
+            return None
+
         try:
             logger.info(f"📊 Fetching profile for @{username}")
 
@@ -218,6 +230,10 @@ class TwitterAutomation:
         Returns:
             True if successful, False otherwise
         """
+        if not self.api or not self.client:
+            logger.error("Twitter API not initialized. Cannot send DM.")
+            return False
+
         try:
             logger.info(f"📧 Sending DM to @{username}")
 
@@ -274,6 +290,10 @@ class TwitterAutomation:
         Returns:
             True if connection is working, False otherwise
         """
+        if not self.api:
+            logger.error("Twitter API not initialized.")
+            return False
+
         try:
             user = self.api.verify_credentials()
             logger.info(f"✅ Twitter connection test successful: @{user.screen_name}")
