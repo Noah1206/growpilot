@@ -29,6 +29,11 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting GrowthPilot API...")
 
+    # Run database migrations first
+    print("📊 Running database migrations...")
+    from app.core.migrations import run_migrations
+    run_migrations()
+
     # Create database tables
     print("📊 Creating database tables...")
     Base.metadata.create_all(bind=engine)
