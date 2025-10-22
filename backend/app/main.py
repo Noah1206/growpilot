@@ -1,4 +1,5 @@
 """Main FastAPI application."""
+import re
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -51,9 +52,13 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Allow Railway frontend subdomains using regex
+allow_origin_regex = r"https://.*\.up\.railway\.app"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
