@@ -17,7 +17,7 @@ class Campaign(Base):
     target_audience_hint = Column(String(500))
     locales = Column(JSON)  # List of locale codes
     language_pref = Column(String(10), default="en")
-    channels = Column(JSON)  # List of channels: linkedin, reddit, facebook
+    channels = Column(JSON)  # List of channels: reddit, twitter, facebook
     tone = Column(String(50), default="friendly")
     cta = Column(String(255))
 
@@ -27,7 +27,6 @@ class Campaign(Base):
     # Generated outputs
     icp = Column(JSON)  # ICP Planner output
     queries = Column(JSON)  # Query Builder output
-    linkedin_copy = Column(JSON)  # LinkedIn copy variants
     reddit_copy = Column(JSON)  # Reddit copy variants
     facebook_copy = Column(JSON)  # Facebook copy variants
     policy_review = Column(JSON)  # Policy review results

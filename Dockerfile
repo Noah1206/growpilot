@@ -9,6 +9,7 @@ COPY backend/requirements.txt /app/backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 # Copy entire project (backend + frontend)
+COPY . .
 COPY . /app/
 
 # Expose port

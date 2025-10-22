@@ -13,7 +13,7 @@ class CampaignInput(BaseModel):
     target_audience_hint: Optional[str] = Field(None, max_length=500, description="Target audience hint")
     locales: List[str] = Field(default=["US"], description="Target locales")
     language_pref: str = Field(default="en", description="Preferred language")
-    channels: List[str] = Field(default=["linkedin", "reddit", "facebook"], description="Target channels")
+    channels: List[str] = Field(default=["reddit", "twitter", "facebook"], description="Target channels")
     tone: str = Field(default="friendly", description="Communication tone")
     cta: Optional[str] = Field(None, max_length=255, description="Call to action")
 
@@ -40,7 +40,7 @@ class CopyGeneratorInput(BaseModel):
     icp: Dict[str, Any]
     tone: str = "friendly"
     cta: Optional[str] = None
-    channel: str  # linkedin, reddit, or facebook
+    channel: str  # reddit, twitter, or facebook
 
 
 class PolicyReviewInput(BaseModel):
@@ -123,7 +123,6 @@ class CampaignResponse(BaseModel):
     cta: Optional[str]
     icp: Optional[Dict[str, Any]]
     queries: Optional[Dict[str, Any]]
-    linkedin_copy: Optional[Dict[str, Any]]
     reddit_copy: Optional[Dict[str, Any]]
     facebook_copy: Optional[Dict[str, Any]]
     policy_review: Optional[Dict[str, Any]]

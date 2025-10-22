@@ -48,18 +48,6 @@ async def build_queries(data: QueryBuilderInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query building failed: {str(e)}")
 
-
-@router.post("/linkedin", response_model=CopyOutput)
-async def generate_linkedin_copy(data: CopyGeneratorInput):
-    """Generate LinkedIn DM copy variants."""
-    try:
-        agent = LinkedInCopyAgent()
-        result = await agent.generate_copy(data.model_dump())
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LinkedIn copy generation failed: {str(e)}")
-
-
 @router.post("/reddit", response_model=CopyOutput)
 async def generate_reddit_copy(data: CopyGeneratorInput):
     """Generate Reddit comment copy variants."""

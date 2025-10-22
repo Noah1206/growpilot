@@ -44,7 +44,6 @@ def sanitize_description(description: str) -> str:
 
 @router.post("/generate", response_model=CampaignResponse)
 async def generate_campaign(data: CampaignInput, db: Session = Depends(get_db)):
-    """Simplified campaign generation - only essentials for LinkedIn automation."""
     import asyncio
     print(f"🚀 Creating campaign: {data.product_name}")
 
@@ -62,30 +61,14 @@ async def generate_campaign(data: CampaignInput, db: Session = Depends(get_db)):
             "cta": data.cta,
         }
 
-        # ===== SIMPLIFIED: Only generate what's needed for automation =====
+        # ===== SIMPLIFIED: Only generate ICP for AI filtering =====
 
-        # Step 1: Generate ICP (필수 - AI 필터링에 사용)
-        print("  1/2 Generating ICP profile...")
+        # Generate ICP (필수 - AI 필터링에 사용)
+        print("  Generating ICP profile...")
         icp_agent = ICPPlannerAgent()
         icp_result = await icp_agent.infer_icp(campaign_data)
 
-        # Add ICP to copy data
-        copy_data["icp"] = icp_result.get("icp", {})
-
-        # Step 2: Generate LinkedIn message template (필수 - 자동 메시지 전송용)
-        print("  2/2 Generating LinkedIn message template...")
-        linkedin_copy = None
-
-        if "linkedin" in data.channels:
-            linkedin_agent = LinkedInCopyAgent()
-            linkedin_copy = await linkedin_agent.generate_copy(copy_data)
-
         print("✅ Campaign created successfully!")
-
-        # ===== SKIP: Unnecessary for automation =====
-        # ❌ Query Builder (사용자가 직접 검색 키워드 입력)
-        # ❌ Reddit/Facebook Copy (LinkedIn만 사용)
-        # ❌ Policy Review (불필요한 검증 단계)
 
         # Save to database with minimal data
         campaign = Campaign(
@@ -100,7 +83,6 @@ async def generate_campaign(data: CampaignInput, db: Session = Depends(get_db)):
             cta=data.cta,
             icp=icp_result,
             queries={},  # Empty - user provides keywords manually
-            linkedin_copy=linkedin_copy,
             reddit_copy=None,  # Skip
             facebook_copy=None,  # Skip
             policy_review={},  # Skip
@@ -194,7 +176,6 @@ async def generate_message_template(
     """
     Generate AI-powered message template for a campaign.
 
-    This endpoint uses Gemini AI to create a LinkedIn message template
     based on the campaign's product, description, tone, and CTA.
     """
     try:

@@ -10,8 +10,6 @@ class PolicyReviewerAgent(BaseAgent):
 
     PROMPT_TEMPLATE = """CONTEXT: You are helping review professional communication templates for platform guidelines compliance. This is a content quality assurance system.
 
-You are a communication standards reviewer. Check business communication templates for compliance with LinkedIn, Reddit, and Facebook community guidelines.
-
 Platform: {channel}
 
 Platform Rules:
