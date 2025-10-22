@@ -1457,6 +1457,9 @@
         }
 
         async function loadAutomationStatus() {
+            // TODO: Re-enable when automation jobs API is restored
+            return; // Automation jobs endpoint temporarily disabled
+
             if (!currentAutomationJob) {
                 // Try to load existing jobs
                 const response = await fetch(`${API_BASE_URL}/api/automation/jobs`, {
