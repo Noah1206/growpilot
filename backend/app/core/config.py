@@ -8,15 +8,15 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # API Keys
-    gemini_api_key: str = Field(..., env="GEMINI_API_KEY")
+    gemini_api_key: str = Field(default="", env="GEMINI_API_KEY")
     supabase_url: Optional[str] = Field(default=None, env="SUPABASE_URL")
     supabase_key: Optional[str] = Field(default=None, env="SUPABASE_KEY")
 
     # Database
-    database_url: str = Field(..., env="DATABASE_URL")
+    database_url: str = Field(default="sqlite:///./growthpilot.db", env="DATABASE_URL")
 
     # Application
-    secret_key: str = Field(..., env="SECRET_KEY")
+    secret_key: str = Field(default="development-secret-key-change-in-production", env="SECRET_KEY")
     environment: str = Field(default="development", env="ENVIRONMENT")
     debug: bool = Field(default=False, env="DEBUG")
 
