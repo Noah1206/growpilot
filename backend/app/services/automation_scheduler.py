@@ -126,10 +126,27 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
     """Process Reddit automation job."""
     import json
 
-    # Parse search keywords for subreddit
-    keywords_data = json.loads(job.search_keywords) if isinstance(job.search_keywords, str) else {"subreddit": "investing", "keywords": job.search_keywords}
-    subreddit = keywords_data.get("subreddit", "investing")
-    keywords = keywords_data.get("keywords", job.search_keywords)
+    # Parse search keywords - handle both JSON and plain text
+    try:
+        # Try to parse as JSON first (old format: {"subreddit": "...", "keywords": "..."})
+        keywords_data = json.loads(job.search_keywords)
+        subreddit = keywords_data.get("subreddit", "investing")
+        keywords = keywords_data.get("keywords", job.search_keywords)
+    except (json.JSONDecodeError, TypeError):
+        # Plain text format (new format: just keywords)
+        # Use default subreddits based on keywords
+        keywords = job.search_keywords
+
+        # Smart subreddit selection based on keywords
+        keywords_lower = keywords.lower()
+        if any(word in keywords_lower for word in ['developer', 'programming', 'code', 'git', 'software']):
+            subreddit = "programming"
+        elif any(word in keywords_lower for word in ['product', 'startup', 'entrepreneur']):
+            subreddit = "startups"
+        elif any(word in keywords_lower for word in ['design', 'ui', 'ux']):
+            subreddit = "design"
+        else:
+            subreddit = "technology"  # Default fallback
 
     logger.info(f"🔍 Searching r/{subreddit} for: {keywords}")
 
