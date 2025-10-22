@@ -1343,7 +1343,7 @@
             if (!token) return;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/campaigns`, {
+                const response = await fetch(`${API_BASE_URL}/api/campaigns/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
