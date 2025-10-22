@@ -162,7 +162,7 @@
 
     <script src="static/js/app.js?v=4"></script>
     <script>
-        const API_BASE_URL = "http://localhost:8001";
+        const API_BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8001" : window.location.origin;
 
         async function loadCampaigns() {
             document.getElementById('loading').style.display = 'block';

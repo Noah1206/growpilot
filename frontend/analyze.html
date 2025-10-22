@@ -809,7 +809,7 @@
 
     <script>
         // Define API_BASE_URL locally (don't rely on app.js)
-        const API_BASE_URL = "http://localhost:8001";
+        const API_BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8001" : window.location.origin;
 
         // Immediate log to verify script execution and localStorage access
         console.log('========== ANALYZE.HTML SCRIPT LOADED ==========');
