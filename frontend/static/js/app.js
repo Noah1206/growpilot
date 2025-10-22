@@ -1,5 +1,8 @@
 // API Configuration
-const API_BASE_URL = "http://localhost:8001";
+// Use Railway domain in production, localhost in development
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? "http://localhost:8001"
+    : "https://growthpilot-production.up.railway.app";
 
 // Auth state management
 let isLoggedIn = false;

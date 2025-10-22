@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # CORS
     allowed_origins: str = Field(
-        default="http://localhost:9000,http://127.0.0.1:9000,http://localhost:6000,http://127.0.0.1:6000",
+        default="http://localhost:9000,http://127.0.0.1:9000,https://growthpilot-production.up.railway.app",
         env="ALLOWED_ORIGINS"
     )
 
