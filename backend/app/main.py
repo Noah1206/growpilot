@@ -52,20 +52,9 @@ app = FastAPI(
 )
 
 # Configure CORS
-# Build comprehensive origins list
-allowed_origins = [
-    "http://localhost:9000",
-    "http://127.0.0.1:9000",
-    "https://growthpilot-production.up.railway.app",
-    "https://growpilot-production-9e97.up.railway.app"
-]
-
-# Add any additional origins from settings
-for origin in settings.cors_origins:
-    if origin not in allowed_origins:
-        allowed_origins.append(origin)
-
-print(f"🌐 CORS allowed origins: {allowed_origins}")
+# Allow all origins for development, same origin in production serves both
+allowed_origins = ["*"]  # Simplified since frontend and backend are served together
+print(f"🌐 CORS: Allowing all origins (frontend served by backend)")
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,16 +65,6 @@ app.add_middleware(
 )
 
 # API Endpoints (must be defined BEFORE static files)
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "Welcome to GrowthPilot API",
-        "docs": "/docs",
-        "health": "/health"
-    }
-
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -106,8 +85,9 @@ app.include_router(analytics.router)
 # app.include_router(reddit.router)
 # app.include_router(twitter.router)
 
-# Mount static files (frontend) at /static path - must be LAST
-# Note: Mounting at "/" would override all API routes
+# Mount static files (frontend) at root - must be LAST
+# This serves frontend at root, but API routes take precedence
 frontend_path = Path(__file__).parent.parent.parent / "frontend"
 if frontend_path.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+    print(f"✅ Frontend mounted at root from: {frontend_path}")
