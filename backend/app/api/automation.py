@@ -20,7 +20,7 @@ from app.schemas.automation_job import (
     AutomationJobStats
 )
 
-router = APIRouter(prefix="/api/automation", tags=["automation"])
+router = APIRouter(prefix="/automation", tags=["automation"])
 
 
 # ============================================================================

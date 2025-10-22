@@ -24,7 +24,7 @@ from app.agents import (
     CampaignReporterAgent,
 )
 
-router = APIRouter(prefix="/api/agents", tags=["agents"])
+router = APIRouter(prefix="/agents", tags=["agents"])
 
 
 @router.post("/icp", response_model=ICPOutput)

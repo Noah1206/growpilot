@@ -86,22 +86,22 @@ async def health_check():
     }
 
 
-# Include routers
+# Include routers with /api prefix
 print("📋 Registering API routers...")
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/api")
 print("  ✅ Auth router registered")
-app.include_router(agents.router)
+app.include_router(agents.router, prefix="/api")
 print("  ✅ Agents router registered")
-app.include_router(campaigns.router)
-print(f"  ✅ Campaigns router registered: {campaigns.router.prefix}")
-app.include_router(tracking.router)
+app.include_router(campaigns.router, prefix="/api")
+print(f"  ✅ Campaigns router registered")
+app.include_router(tracking.router, prefix="/api")
 print("  ✅ Tracking router registered")
-app.include_router(analytics.router)
+app.include_router(analytics.router, prefix="/api")
 print("  ✅ Analytics router registered")
-app.include_router(automation.router)
+app.include_router(automation.router, prefix="/api")
 print("  ✅ Automation router registered")
-# app.include_router(reddit.router)
-# app.include_router(twitter.router)
+# app.include_router(reddit.router, prefix="/api")
+# app.include_router(twitter.router, prefix="/api")
 
 # Mount static files (frontend) at root - must be LAST
 # This serves frontend at root, but API routes take precedence

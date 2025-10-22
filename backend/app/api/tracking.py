@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.core.database import get_db
 from app.models import LinkClick
 
-router = APIRouter(prefix="/api/track", tags=["tracking"])
+router = APIRouter(prefix="/track", tags=["tracking"])
 
 
 class LinkClickInput(BaseModel):

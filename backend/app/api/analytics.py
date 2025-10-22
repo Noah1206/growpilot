@@ -7,7 +7,7 @@ from sqlalchemy import func
 from app.core.database import get_db
 from app.models import Campaign, LinkClick, CampaignInteraction
 
-router = APIRouter(prefix="/api/analytics", tags=["analytics"])
+router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 @router.get("/campaign/{campaign_id}/overview")

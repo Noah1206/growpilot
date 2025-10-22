@@ -16,7 +16,7 @@ from app.agents import (
     PolicyReviewerAgent,
 )
 
-router = APIRouter(prefix="/api/campaigns", tags=["campaigns"])
+router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 
 
 def sanitize_description(description: str) -> str:
