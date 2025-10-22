@@ -288,12 +288,15 @@ function displayResults(data) {
     displayQueries(data.queries);
   }
 
-  // Display LinkedIn Copy
-  if (data.linkedin_copy) {
-    document.getElementById("linkedinSection").style.display = "block";
-    displayCopy("linkedinResults", data.linkedin_copy);
-  } else {
-    document.getElementById("linkedinSection").style.display = "none";
+  // Display LinkedIn Copy (if element exists)
+  const linkedinSection = document.getElementById("linkedinSection");
+  if (linkedinSection) {
+    if (data.linkedin_copy) {
+      linkedinSection.style.display = "block";
+      displayCopy("linkedinResults", data.linkedin_copy);
+    } else {
+      linkedinSection.style.display = "none";
+    }
   }
 
   // Display Reddit Copy
