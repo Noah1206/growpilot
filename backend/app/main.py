@@ -17,7 +17,6 @@ load_dotenv()
 
 # Import all models to ensure they are registered with Base
 from app.models.campaign import Campaign
-from app.models.automation_job import AutomationJob
 from app.models.user import User
 from app.models.campaign_interaction import CampaignInteraction
 from app.models.link_click import LinkClick
