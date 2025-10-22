@@ -84,8 +84,18 @@ class TwitterAutomation:
         try:
             logger.info(f"🔍 Searching tweets for: {keywords}")
 
-            # Build search query
-            query = f"{keywords} -is:retweet lang:{language}"
+            # Build search query with OR logic for multiple keywords
+            # Split keywords by space and join with OR
+            keyword_list = [kw.strip() for kw in keywords.split() if kw.strip()]
+            if len(keyword_list) > 1:
+                # Multiple keywords: use OR logic
+                query_keywords = " OR ".join(keyword_list)
+            else:
+                # Single keyword
+                query_keywords = keywords
+
+            query = f"({query_keywords}) -is:retweet lang:{language}"
+            logger.info(f"   Twitter query: {query}")
 
             # Search tweets using API v2
             tweets_data = []

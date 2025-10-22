@@ -74,8 +74,20 @@ class RedditAutomation:
             subreddit = self.reddit.subreddit(subreddit_name)
             posts = []
 
+            # Build search query with OR logic for multiple keywords
+            # Reddit search supports OR operator
+            keyword_list = [kw.strip() for kw in keywords.split() if kw.strip()]
+            if len(keyword_list) > 1:
+                # Multiple keywords: use OR logic
+                search_query = " OR ".join(keyword_list)
+            else:
+                # Single keyword
+                search_query = keywords
+
+            logger.info(f"   Reddit query: {search_query}")
+
             # Search posts
-            for submission in subreddit.search(keywords, time_filter=time_filter, limit=limit):
+            for submission in subreddit.search(search_query, time_filter=time_filter, limit=limit):
                 post_data = {
                     'post_id': submission.id,
                     'post_title': submission.title,
