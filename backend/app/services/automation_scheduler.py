@@ -37,7 +37,7 @@ def create_log(job_id: int, log_type: str, db: Session, **kwargs) -> AutomationL
         message_preview=kwargs.get('message_preview'),
         status=kwargs.get('status'),
         error_message=kwargs.get('error_message'),
-        metadata=kwargs.get('metadata')
+        extra_data=kwargs.get('extra_data')
     )
     db.add(log)
     db.commit()
@@ -175,7 +175,7 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
         job.id,
         'search_start',
         db,
-        metadata={'subreddit': subreddit, 'keywords': keywords},
+        extra_data={'subreddit': subreddit, 'keywords': keywords},
         status='searching'
     )
 
@@ -192,7 +192,7 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
             job.id,
             'search_complete',
             db,
-            metadata={'subreddit': subreddit, 'users_found': 0},
+            extra_data={'subreddit': subreddit, 'users_found': 0},
             status='no_results'
         )
         return
@@ -206,7 +206,7 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
         job.id,
         'search_complete',
         db,
-        metadata={'subreddit': subreddit, 'users_found': len(unique_users)},
+        extra_data={'subreddit': subreddit, 'users_found': len(unique_users)},
         status='success'
     )
 

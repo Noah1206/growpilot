@@ -26,8 +26,8 @@ class AutomationLog(Base):
     status = Column(String(50), nullable=True)  # 'success', 'failed', 'pending'
     error_message = Column(Text, nullable=True)
 
-    # Metadata
-    metadata = Column(JSON, nullable=True)  # Additional data (users_found, subreddit, etc)
+    # Extra data
+    extra_data = Column(JSON, nullable=True)  # Additional data (users_found, subreddit, etc)
 
     # Relationships
     job = relationship("AutomationJob", back_populates="logs")

@@ -390,7 +390,7 @@ async def get_automation_logs(
                 "message_preview": log.message_preview,
                 "status": log.status,
                 "error_message": log.error_message,
-                "metadata": log.metadata
+                "metadata": log.extra_data
             }
             for log in logs
         ]
