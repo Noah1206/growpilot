@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python313", "postgresql_16.dev", "gcc"]
+nixPkgs = ["python313"]
 
 [phases.install]
 cmds = ["pip install -r backend/requirements.txt"]
