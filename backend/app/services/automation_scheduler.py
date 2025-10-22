@@ -11,8 +11,9 @@ from app.core.database import SessionLocal
 from app.models.automation_job import AutomationJob
 from app.models.automation_settings import AutomationSettings
 from app.models.campaign_interaction import CampaignInteraction
-from app.services.reddit_automation import reddit_automation
-from app.services.twitter_automation import twitter_automation
+# Lazy imports to avoid circular dependencies
+# from app.services.reddit_automation import reddit_automation
+# from app.services.twitter_automation import twitter_automation
 from app.services.gemini_ai import generate_personalized_message
 
 logging.basicConfig(level=logging.INFO)
