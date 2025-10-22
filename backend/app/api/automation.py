@@ -8,6 +8,7 @@ from app.core.auth import get_current_active_user
 from app.models.user import User
 from app.models.automation_settings import AutomationSettings
 from app.models.automation_job import AutomationJob
+from app.models.automation_log import AutomationLog
 from app.schemas.automation import (
     AutomationSettingsCreate,
     AutomationSettingsUpdate,
@@ -349,3 +350,48 @@ async def delete_automation_job(
     db.commit()
 
     return None
+
+
+@router.get("/jobs/{job_id}/logs")
+async def get_automation_logs(
+    job_id: int,
+    limit: int = 50,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get activity logs for an automation job."""
+    # Verify job belongs to user
+    job = db.query(AutomationJob).filter(
+        AutomationJob.id == job_id,
+        AutomationJob.user_id == current_user.id
+    ).first()
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Automation job not found"
+        )
+
+    # Get logs
+    logs = db.query(AutomationLog).filter(
+        AutomationLog.job_id == job_id
+    ).order_by(AutomationLog.timestamp.desc()).limit(limit).all()
+
+    # Format logs for frontend
+    return {
+        "job_id": job_id,
+        "logs": [
+            {
+                "id": log.id,
+                "log_type": log.log_type,
+                "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                "username": log.username,
+                "platform_info": log.platform_info,
+                "message_preview": log.message_preview,
+                "status": log.status,
+                "error_message": log.error_message,
+                "metadata": log.metadata
+            }
+            for log in logs
+        ]
+    }

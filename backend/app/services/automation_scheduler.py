@@ -9,6 +9,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.database import SessionLocal
 from app.models.automation_job import AutomationJob
+from app.models.automation_log import AutomationLog
 from app.models.automation_settings import AutomationSettings
 from app.models.campaign_interaction import CampaignInteraction
 from app.services.reddit_automation import reddit_automation
@@ -23,6 +24,25 @@ logger = logging.getLogger(__name__)
 
 # Global scheduler instance
 scheduler: Optional[AsyncIOScheduler] = None
+
+
+def create_log(job_id: int, log_type: str, db: Session, **kwargs) -> AutomationLog:
+    """Helper function to create automation log entries."""
+    log = AutomationLog(
+        job_id=job_id,
+        log_type=log_type,
+        timestamp=datetime.utcnow(),
+        username=kwargs.get('username'),
+        platform_info=kwargs.get('platform_info'),
+        message_preview=kwargs.get('message_preview'),
+        status=kwargs.get('status'),
+        error_message=kwargs.get('error_message'),
+        metadata=kwargs.get('metadata')
+    )
+    db.add(log)
+    db.commit()
+    logger.info(f"📝 Log created: {log_type} for job {job_id}")
+    return log
 
 
 def get_daily_limit(user_id: int, db: Session) -> int:
@@ -150,6 +170,15 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
 
     logger.info(f"🔍 Searching r/{subreddit} for: {keywords}")
 
+    # Create search start log
+    create_log(
+        job.id,
+        'search_start',
+        db,
+        metadata={'subreddit': subreddit, 'keywords': keywords},
+        status='searching'
+    )
+
     # Search Reddit posts
     posts = await reddit_automation.search_subreddit(
         subreddit_name=subreddit,
@@ -159,11 +188,27 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
 
     if not posts:
         logger.warning(f"No posts found in r/{subreddit}")
+        create_log(
+            job.id,
+            'search_complete',
+            db,
+            metadata={'subreddit': subreddit, 'users_found': 0},
+            status='no_results'
+        )
         return
 
     # Extract unique users
     unique_users = await reddit_automation.extract_unique_users(posts)
     logger.info(f"Found {len(unique_users)} unique users")
+
+    # Create search complete log
+    create_log(
+        job.id,
+        'search_complete',
+        db,
+        metadata={'subreddit': subreddit, 'users_found': len(unique_users)},
+        status='success'
+    )
 
     # Send messages to users
     sent_count = 0
@@ -175,6 +220,19 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
             profile = await reddit_automation.get_user_profile(username)
             if not profile:
                 continue
+
+            # Create sending progress log
+            create_log(
+                job.id,
+                'send_progress',
+                db,
+                username=username,
+                platform_info={
+                    'subreddit': subreddit,
+                    'karma': profile.get('karma', 0)
+                },
+                status='sending'
+            )
 
             # Generate personalized message
             if job.use_ai_enhancement:
@@ -223,16 +281,61 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
                 # Update counters
                 job.total_sent_count += 1
                 job.daily_sent_count += 1
+                job.success_count += 1
                 sent_count += 1
                 db.commit()
 
+                # Create success log
+                create_log(
+                    job.id,
+                    'send_success',
+                    db,
+                    username=username,
+                    platform_info={
+                        'subreddit': subreddit,
+                        'karma': profile.get('karma', 0)
+                    },
+                    message_preview=personalized_message[:150] + '...' if len(personalized_message) > 150 else personalized_message,
+                    status='success'
+                )
+
                 logger.info(f"  ✅ Sent {sent_count}/{remaining_slots} to u/{username}")
+            else:
+                # Create failure log
+                job.error_count += 1
+                db.commit()
+
+                create_log(
+                    job.id,
+                    'send_fail',
+                    db,
+                    username=username,
+                    platform_info={
+                        'subreddit': subreddit,
+                        'karma': profile.get('karma', 0)
+                    },
+                    status='failed',
+                    error_message='Failed to send DM (user may not accept DMs)'
+                )
 
             # Rate limiting
             await asyncio.sleep(10)
 
         except Exception as e:
             logger.error(f"  ❌ Error sending to u/{username}: {e}")
+            job.error_count += 1
+            db.commit()
+
+            # Create error log
+            create_log(
+                job.id,
+                'send_fail',
+                db,
+                username=username,
+                platform_info={'subreddit': subreddit},
+                status='error',
+                error_message=str(e)
+            )
             continue
 
     logger.info(f"✅ Reddit automation completed! Sent {sent_count} messages")

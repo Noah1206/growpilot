@@ -21,6 +21,7 @@ from app.models.user import User
 from app.models.campaign_interaction import CampaignInteraction
 from app.models.link_click import LinkClick
 from app.models.automation_job import AutomationJob
+from app.models.automation_log import AutomationLog
 
 
 @asynccontextmanager

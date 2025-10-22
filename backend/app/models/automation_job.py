@@ -48,6 +48,7 @@ class AutomationJob(Base):
     # Relationships
     user = relationship("User", back_populates="automation_jobs")
     campaign = relationship("Campaign")
+    logs = relationship("AutomationLog", back_populates="job", cascade="all, delete-orphan", order_by="AutomationLog.timestamp.desc()")
 
     def __repr__(self):
         return f"<AutomationJob(id={self.id}, platform='{self.platform}', status='{self.status}')>"
