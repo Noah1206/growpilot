@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - GrowthPilot</title>
+    <link rel="stylesheet" href="static/css/styles.css?v=3">
+    <style>
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .campaign-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .campaign-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .campaign-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .campaign-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .campaign-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-draft { background: #f3f4f6; color: #6b7280; }
+        .status-active { background: #d1fae5; color: #059669; }
+        .status-paused { background: #fef3c7; color: #d97706; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .metric {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .channels-list {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .channel-badge {
+            padding: 4px 10px;
+            background: #e0e7ff;
+            color: #4338ca;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .created-date {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 10px;
+        }
+
+        .no-campaigns {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .no-campaigns h3 {
+            margin-bottom: 10px;
+            color: #374151;
+        }
+
+        .nav-link {
+            color: #6366f1;
+            text-decoration: none;
+            margin-top: 15px;
+            display: inline-block;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <h1>GrowthPilot Analytics</h1>
+                    <p class="tagline">Campaign Performance Dashboard</p>
+                </div>
+                <div class="user-menu">
+                    <a href="/" class="nav-link">← Back to Campaigns</a>
+                    <span id="userEmail" class="user-email"></span>
+                    <button onclick="handleLogout()" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="card">
+                <h2>Your Campaigns</h2>
+
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading campaigns...</p>
+                </div>
+
+                <div id="error" class="error-card" style="display: none;">
+                    <p id="errorMessage"></p>
+                </div>
+
+                <div id="campaignsList"></div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Built with ❤️ for SaaS founders | Powered by Google Gemini AI</p>
+        </footer>
+    </div>
+
+    <script src="static/js/app.js?v=4"></script>
+    <script>
+        const API_BASE_URL = "http://localhost:8001";
+
+        async function loadCampaigns() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/api/analytics/campaigns/summary`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load campaigns');
+                }
+
+                const data = await response.json();
+                displayCampaigns(data.campaigns);
+
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('errorMessage').textContent =
+                    `Failed to load campaigns: ${error.message}`;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayCampaigns(campaigns) {
+            const container = document.getElementById('campaignsList');
+
+            if (!campaigns || campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="no-campaigns">
+                        <h3>No campaigns yet</h3>
+                        <p>Create your first campaign to start tracking performance</p>
+                        <a href="/" class="btn btn-primary" style="margin-top: 20px;">Create Campaign</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="campaigns-grid">';
+
+            campaigns.forEach(campaign => {
+                const statusClass = `status-${campaign.status}`;
+                const createdDate = new Date(campaign.created_at).toLocaleDateString();
+
+                html += `
+                    <div class="campaign-card" onclick="viewCampaignDetails(${campaign.id})">
+                        <div class="campaign-header">
+                            <div>
+                                <div class="campaign-name">${campaign.product_name}</div>
+                                <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">
+                                    ${campaign.tracking_url || 'No tracking URL'}
+                                </div>
+                            </div>
+                            <span class="campaign-status ${statusClass}">${campaign.status}</span>
+                        </div>
+
+                        <div class="channels-list">
+                            ${(campaign.channels || []).map(channel =>
+                                `<span class="channel-badge">${channel}</span>`
+                            ).join('')}
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <div class="metric-label">Clicks</div>
+                                <div class="metric-value">${campaign.metrics.clicks}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Messages</div>
+                                <div class="metric-value">${campaign.metrics.messages_sent}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Replies</div>
+                                <div class="metric-value">${campaign.metrics.replies}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Response Rate</div>
+                                <div class="metric-value">${campaign.metrics.response_rate}%</div>
+                            </div>
+                        </div>
+
+                        <div class="created-date">Created ${createdDate}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function viewCampaignDetails(campaignId) {
+            // For now, just show an alert. We can implement a detailed view later
+            alert(`Campaign details view for campaign #${campaignId} will be implemented next!`);
+            // TODO: Navigate to detailed campaign analytics page
+        }
+
+        // Load campaigns on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadCampaigns();
+        });
+    </script>
+</body>
+</html>

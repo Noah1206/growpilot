@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Guide - GrowthPilot</title>
+    <link rel="stylesheet" href="static/css/styles.css?v=3">
+    <style>
+        .setup-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .setup-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--color-text-primary);
+            margin-bottom: 12px;
+        }
+
+        .setup-header .emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .setup-header p {
+            font-size: 1.125rem;
+            color: var(--color-text-secondary);
+        }
+
+        .step-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--color-accent);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        .step-content {
+            color: var(--color-text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .step-content strong {
+            color: var(--color-text-primary);
+            font-weight: 600;
+        }
+
+        .step-content ol {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        .step-content li {
+            margin-bottom: 16px;
+            color: var(--color-text-primary);
+        }
+
+        .step-content ul {
+            margin: 12px 0 12px 20px;
+            list-style-type: disc;
+        }
+
+        .step-content ul li {
+            margin-bottom: 8px;
+            color: var(--color-text-secondary);
+        }
+
+        .screenshot {
+            background: var(--color-bg-tertiary);
+            border: 2px dashed var(--color-border);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--color-text-secondary);
+        }
+
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-box,
+        .warning-box,
+        .success-box {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid;
+            font-size: 0.9375rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: #3b82f6;
+        }
+
+        .warning-box {
+            background: rgba(255, 192, 67, 0.05);
+            border-color: var(--color-warning);
+        }
+
+        .success-box {
+            background: rgba(0, 208, 132, 0.05);
+            border-color: var(--color-success);
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .extension-link {
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .extension-link h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .extension-link p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-name">GrowthPilot</span>
+                <span class="beta-badge">BETA</span>
+            </div>
+            <div class="nav-menu">
+                <div id="loggedInMenu" style="display: flex;">
+                    <a href="/index.html" class="nav-link">Campaign</a>
+                    <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/analyze.html" class="nav-link">Analyze</a>
+                    <a href="/setup.html" class="nav-link" style="color: var(--color-accent); font-weight: 600;">Setup Guide</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="setup-container">
+        <div class="setup-header">
+            <span class="emoji">🚀</span>
+            <h1>GrowthPilot 시작 가이드</h1>
+            <p>3분 안에 LinkedIn AI 자동화 시작하기</p>
+        </div>
+
+        <!-- Step 1: Extension 다운로드 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div class="step-title">Chrome Extension 설치</div>
+            </div>
+            <div class="step-content">
+                <p><strong>GrowthPilot Chrome Extension을 설치하세요.</strong></p>
+
+                <div class="extension-link">
+                    <h3>📦 Extension 다운로드</h3>
+                    <p>Chrome Web Store에서 GrowthPilot Extension을 설치하세요</p>
+                    <a href="https://chrome.google.com/webstore" target="_blank" class="btn-primary" style="background: white; color: var(--color-accent);">
+                        Chrome Web Store에서 다운로드
+                    </a>
+                </div>
+
+                <ol>
+                    <li>위 버튼을 클릭하여 Chrome Web Store로 이동</li>
+                    <li><strong>"Chrome에 추가"</strong> 버튼 클릭</li>
+                    <li>팝업에서 <strong>"확장 프로그램 추가"</strong> 클릭</li>
+                    <li>Chrome 툴바에 <strong>초록색 GP 아이콘</strong> 나타나는지 확인</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>💡 팁:</strong> Extension 아이콘이 보이지 않으면 툴바의 퍼즐 아이콘을 클릭하여 GrowthPilot을 고정하세요.
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: 회원가입 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div class="step-title">GrowthPilot 계정 생성</div>
+            </div>
+            <div class="step-content">
+                <p><strong>무료 계정을 만들고 로그인하세요.</strong></p>
+
+                <ol>
+                    <li><a href="/index.html" class="btn-primary">GrowthPilot 홈페이지</a> 접속</li>
+                    <li>우측 상단 <strong>"Get Started"</strong> 클릭</li>
+                    <li>이메일과 비밀번호로 회원가입</li>
+                    <li>로그인 완료</li>
+                </ol>
+
+                <div class="success-box">
+                    <strong>✨ 무료 플랜:</strong> 월 100개 자동 메시지 무료 제공!
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: LinkedIn 연결 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div class="step-title">LinkedIn 계정 연결</div>
+            </div>
+            <div class="step-content">
+                <p><strong>LinkedIn에 로그인하여 GrowthPilot이 자동화를 실행할 수 있도록 합니다.</strong></p>
+
+                <ol>
+                    <li>새 탭에서 <a href="https://www.linkedin.com" target="_blank" class="btn-primary">LinkedIn</a> 접속</li>
+                    <li>LinkedIn 계정으로 로그인</li>
+                    <li><strong>LinkedIn 탭에 있는 상태에서</strong> Chrome 툴바의 <strong>GrowthPilot 아이콘(GP)</strong> 클릭</li>
+                    <li>Extension Popup에서 <strong>"✅ LinkedIn 연결됨"</strong> 확인</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong>⚠️ 중요:</strong> LinkedIn 탭에서 Extension을 열어야 계정 연결이 감지됩니다!
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: 첫 캠페인 생성 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <div class="step-title">첫 번째 캠페인 생성</div>
+            </div>
+            <div class="step-content">
+                <p><strong>AI가 자동으로 메시지를 생성할 캠페인을 만드세요.</strong></p>
+
+                <ol>
+                    <li><a href="/index.html" class="btn-primary">Campaign 페이지</a>로 이동</li>
+                    <li><strong>제품 정보 입력</strong>:
+                        <ul>
+                            <li><strong>Product Name:</strong> 당신의 제품/서비스 이름</li>
+                            <li><strong>Description:</strong> 제품이 해결하는 문제</li>
+                            <li><strong>Target Audience:</strong> 이상적인 고객 (예: "스타트업 창업자", "마케팅 담당자")</li>
+                        </ul>
+                    </li>
+                    <li><strong>"Generate Campaign"</strong> 버튼 클릭</li>
+                    <li>AI가 자동 생성한 메시지 확인 및 수정</li>
+                </ol>
+
+                <div class="success-box">
+                    <strong>🤖 AI 마법:</strong> Gemini AI가 타겟 고객에 맞는 개인화된 메시지를 자동으로 작성합니다!
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: 자동화 시작 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <div class="step-title">자동화 시작</div>
+            </div>
+            <div class="step-content">
+                <p><strong>이제 AI가 자동으로 리드를 찾고 메시지를 보냅니다!</strong></p>
+
+                <ol>
+                    <li><a href="/analyze.html" class="btn-primary">Analyze 페이지</a>로 이동</li>
+                    <li>아래로 스크롤하여 <strong>"🤖 Automation"</strong> 카드 찾기</li>
+                    <li>자동화 설정:
+                        <ul>
+                            <li><strong>Campaign:</strong> 방금 생성한 캠페인 선택</li>
+                            <li><strong>Search Keywords:</strong> LinkedIn에서 찾을 키워드 입력<br>
+                                예: "startup founder", "SaaS CEO", "마케팅 담당자"</li>
+                            <li><strong>Message Template:</strong> "Generate AI Message" 버튼 클릭</li>
+                            <li><strong>Daily Limit:</strong> 하루 전송 제한 (권장: 20개)</li>
+                        </ul>
+                    </li>
+                    <li><strong>"🚀 Start Automation"</strong> 버튼 클릭!</li>
+                </ol>
+
+                <div class="warning-box">
+                    <strong>⚠️ LinkedIn 정책 준수:</strong> Daily Limit을 처음엔 20 이하로 설정하는 것을 권장합니다. 너무 많이 보내면 계정이 제한될 수 있습니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: 모니터링 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">6</div>
+                <div class="step-title">실시간 모니터링</div>
+            </div>
+            <div class="step-content">
+                <p><strong>Dashboard에서 자동화 진행 상황을 실시간으로 확인하세요.</strong></p>
+
+                <ol>
+                    <li><a href="/dashboard.html" class="btn-primary">Dashboard</a>로 이동</li>
+                    <li>실시간 통계 확인:
+                        <ul>
+                            <li><strong>오늘 전송:</strong> 오늘 보낸 메시지 수</li>
+                            <li><strong>총 전송:</strong> 전체 메시지 수</li>
+                            <li><strong>성공률:</strong> 메시지 전송 성공률</li>
+                            <li><strong>자동화 상태:</strong> 활성/비활성</li>
+                        </ul>
+                    </li>
+                    <li><strong>LinkedIn Extension Popup</strong>에서도 현재 상태 확인 가능</li>
+                </ol>
+
+                <div class="info-box">
+                    <strong>⏱️ 자동화 작동 시간:</strong> 백엔드 스케줄러가 1분마다 확인하므로 첫 메시지는 1-2분 내에 전송됩니다.
+                </div>
+
+                <div class="success-box">
+                    <strong>🎯 자동화가 하는 일:</strong>
+                    <ol style="margin-top: 10px;">
+                        <li>LinkedIn에서 설정한 키워드로 프로필 검색</li>
+                        <li>Gemini AI가 각 프로필이 타겟 고객인지 자동 판단</li>
+                        <li>매칭된 사람에게만 개인화된 메시지 자동 전송</li>
+                        <li>Daily Limit 도달 시 자동 중지 (다음 날 자동 재개)</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- 완료 카드 -->
+        <div class="step-card" style="background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%); color: white; text-align: center; padding: 50px 32px;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 16px; color: white;">🎉 설정 완료!</h2>
+            <p style="font-size: 1.125rem; opacity: 0.95; margin-bottom: 30px;">이제 GrowthPilot이 24시간 자동으로 리드를 발굴하고 메시지를 보냅니다.</p>
+            <a href="/dashboard.html" style="background: white; color: var(--color-accent); padding: 16px 40px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">
+                📊 Dashboard에서 진행 상황 보기
+            </a>
+        </div>
+
+        <!-- FAQ -->
+        <div class="step-card">
+            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 24px; color: var(--color-text-primary);">❓ 자주 묻는 질문</h2>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px;">Q. 얼마나 많은 메시지를 보낼 수 있나요?</h3>
+                <p style="color: var(--color-text-secondary);">A. 무료 플랜은 월 100개, 프리미엄 플랜은 무제한입니다. LinkedIn 정책상 하루 20-50개를 권장합니다.</p>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px;">Q. LinkedIn에서 차단될 위험이 있나요?</h3>
+                <p style="color: var(--color-text-secondary);">A. Daily Limit을 적절히 설정하고 (20개 이하) 개인화된 메시지를 보내면 안전합니다. GrowthPilot은 LinkedIn 정책을 준수합니다.</p>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px;">Q. 자동화를 중지하려면?</h3>
+                <p style="color: var(--color-text-secondary);">A. Analyze 페이지의 Automation 카드에서 "Stop Automation" 버튼을 클릭하거나, Extension Popup에서 중지할 수 있습니다.</p>
+            </div>
+
+            <div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px;">Q. AI가 생성한 메시지를 수정할 수 있나요?</h3>
+                <p style="color: var(--color-text-secondary);">A. 네! Campaign 생성 후 메시지 템플릿을 자유롭게 수정할 수 있습니다. {name}, {company} 같은 변수를 사용하여 개인화할 수 있습니다.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

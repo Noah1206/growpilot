@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze - GrowthPilot</title>
+
+    <link rel="stylesheet" href="/static/css/styles.css?v=3">
+    <style>
+        .analyze-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--color-bg);
+            border-right: 1px solid var(--color-border);
+            padding: 30px 0;
+            position: sticky;
+            top: 70px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 32px;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-tertiary);
+            padding: 0 24px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-left: 2px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .sidebar-item.active {
+            color: var(--color-accent);
+            background: var(--color-bg-secondary);
+            border-left-color: var(--color-accent);
+        }
+
+        .sidebar-item .icon {
+            font-size: 1.1rem;
+        }
+
+        .sidebar-item .badge {
+            margin-left: auto;
+            background: var(--color-accent);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            background: var(--color-bg-secondary);
+            overflow-y: auto;
+        }
+
+        .content-header {
+            margin-bottom: 32px;
+        }
+
+        .content-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .content-header p {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.01em;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--color-border-hover);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        /* Grid Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--color-text-primary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .field-hint {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--color-text-tertiary);
+            margin-top: 6px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-accent-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg-secondary);
+            border-color: var(--color-border-hover);
+        }
+
+        /* Prospect Items */
+        .prospect-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .prospect-item {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+
+        .prospect-item:hover {
+            border-color: var(--color-border-hover);
+        }
+
+        .prospect-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .prospect-info p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin: 2px 0;
+        }
+
+        /* Notifications */
+        .notification-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .notification-item.unread {
+            background: #fff5f0;
+            border-color: var(--color-accent);
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .notification-content h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .notification-content p {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--color-text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.sent {
+            background: #e6f7ed;
+            color: var(--color-success);
+        }
+
+        .status-badge.pending {
+            background: #fff7e6;
+            color: var(--color-warning);
+        }
+
+        .status-badge.failed {
+            background: #ffe6e6;
+            color: var(--color-error);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--color-text-tertiary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Message Preview */
+        .message-preview {
+            background: var(--color-bg-secondary);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--color-accent);
+            font-size: 0.875rem;
+            margin-top: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: 220px;
+            }
+
+            .main-content {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analyze-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+                padding: 16px 0;
+            }
+
+            .sidebar-section {
+                margin-bottom: 0;
+            }
+
+            .sidebar-item {
+                display: inline-flex;
+                margin: 4px;
+                padding: 8px 16px;
+                border-radius: 6px;
+                border-left: none;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-name">GrowthPilot</span>
+                <span class="beta-badge">BETA</span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <!-- Logged out state -->
+                <div id="loggedOutMenu" style="display: none;">
+                    <button onclick="showLoginModal()" class="nav-btn nav-btn-secondary">Login</button>
+                    <button onclick="showSignupModal()" class="nav-btn nav-btn-primary">Get Started</button>
+                </div>
+
+                <!-- Logged in state -->
+                <div id="loggedInMenu" style="display: none;">
+                    <a href="/index.html" class="nav-link">Campaign</a>
+                    <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/analyze.html" class="nav-link" style="color: var(--color-accent);">Analyze</a>
+                    <span id="userEmail" class="user-email"></span>
+                    <button onclick="handleLogout()" class="nav-btn-logout">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="analyze-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item" onclick="window.location.href='/index.html'" style="color: var(--color-text-secondary); margin-bottom: 16px;">
+                    <span>← Back to Campaign</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Core</div>
+                <div class="sidebar-item active" onclick="switchTab('search')">
+                    <span>Search</span>
+                </div>
+                <div class="sidebar-item" onclick="switchTab('outreach')">
+                    <span>Outreach</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Activity</div>
+                <div class="sidebar-item" onclick="switchTab('sent')">
+                    <span>Sent Messages</span>
+                    <span class="badge" id="sentBadge">0</span>
+                </div>
+                <div class="sidebar-item" onclick="switchTab('notifications')">
+                    <span>Notifications</span>
+                    <span class="badge" id="notificationBadge" style="display: none;">0</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Settings</div>
+                <div class="sidebar-item" onclick="switchTab('settings')">
+                    <span>Preferences</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Search Tab -->
+            <div id="searchTab" class="tab-content active">
+                <div class="content-header">
+                    <h1>🎯 Find Prospects</h1>
+                    <p>Search for ideal customers using AI-powered recommendations</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Prospects</div>
+                        <div class="stat-value" id="totalProspects">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Messages Sent</div>
+                        <div class="stat-value" id="totalSent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Response Rate</div>
+                        <div class="stat-value">0%</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Search Filters</h2>
+
+                        <div class="form-group">
+                            <label>Search Keywords *</label>
+                            <input
+                                type="text"
+                                id="searchKeywords"
+                                placeholder="CEO, Founder, Marketing Manager"
+                            >
+                            <span class="field-hint">Job titles, roles, or keywords</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input
+                                type="text"
+                                id="searchLocation"
+                                placeholder="United States, Singapore"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>Industry</label>
+                            <input
+                                type="text"
+                                id="searchIndustry"
+                                placeholder="SaaS, E-commerce, Finance"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>Number of Prospects</label>
+                            <input
+                                type="number"
+                                id="maxResults"
+                                value="20"
+                                min="1"
+                                max="50"
+                            >
+                            <span class="field-hint">Maximum: 50 prospects</span>
+                        </div>
+
+                        <button onclick="searchProspects()" class="btn btn-primary" id="searchBtn" style="width: 100%;">
+                            🔍 Search Prospects
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Found Prospects (<span id="prospectCount">0</span>)</h2>
+
+                        <div class="prospect-list" id="prospectsList">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🔍</div>
+                                <p>No prospects found yet<br>Start searching to find ideal customers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outreach Tab -->
+            <div id="outreachTab" class="tab-content">
+                <div class="content-header">
+                    <h1>📤 Outreach</h1>
+                    <p>Configure and send automated messages to prospects</p>
+                </div>
+
+                <div class="card">
+                    <h2>Message Template</h2>
+
+                    <div class="form-group">
+                        <label>Outreach Message</label>
+                        <textarea
+                            id="messageTemplate"
+                            rows="8"
+                            placeholder="Your personalized outreach message..."
+                        ></textarea>
+                        <span class="field-hint">AI will personalize this for each prospect</span>
+                    </div>
+
+                    <button onclick="generateMessage()" class="btn btn-secondary" style="width: 100%;">
+                        ✨ Generate AI Message
+                    </button>
+                </div>
+
+                <!-- Automation Card -->
+                <div class="card">
+                    <h2>🤖 Automation</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Set up 24-hour background automation with daily limits</p>
+
+                    <div class="form-group">
+                        <label>Select Campaign *</label>
+                        <select
+                            id="automationCampaignSelect"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+                        >
+                            <option value="">-- Select a campaign --</option>
+                        </select>
+                        <span class="field-hint">Choose which campaign to use for messaging</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Search Keywords *</label>
+                        <input
+                            type="text"
+                            id="automationKeywords"
+                            placeholder="e.g., CEO startup SaaS San Francisco"
+                            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;"
+                        />
+                        <span class="field-hint">LinkedIn will search for prospects matching these keywords</span>
+                    </div>
+
+                    <div id="automationStatus" style="display: none; padding: 16px; background: #f5f5f5; border-radius: 8px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0;">Automation Status</h4>
+                                <span id="jobStatus" class="status-badge active">Active</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <button id="pauseResumeBtn" onclick="toggleAutomation()" class="btn btn-secondary" style="padding: 6px 14px;">
+                                    ⏸️ Pause
+                                </button>
+                                <button onclick="stopAutomation()" class="btn btn-secondary" style="padding: 6px 14px; background: #dc3545; border-color: #dc3545;">
+                                    ⏹️ Stop
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px;">
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Today</div>
+                                <div style="font-size: 20px; font-weight: 600;"><span id="dailySent">0</span> / <span id="dailyLimit">20</span></div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Total Sent</div>
+                                <div style="font-size: 20px; font-weight: 600;" id="totalSentCount">0</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Remaining</div>
+                                <div style="font-size: 20px; font-weight: 600;" id="remainingQuota">20</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #666;">Next Run</div>
+                                <div style="font-size: 14px; font-weight: 600;" id="nextRun">-</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 12px; padding: 8px; background: #fff; border-radius: 4px;">
+                            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Keywords: <span id="currentKeywords" style="color: #333; font-weight: 500;">-</span></div>
+                        </div>
+                    </div>
+
+                    <button id="startAutomationBtn" onclick="startAutomation()" class="btn btn-primary" style="width: 100%;">
+                        🚀 Start Automation
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2>Selected Prospects (<span id="selectedCount">0</span>)</h2>
+
+                    <div class="prospect-list" id="selectedProspectsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📤</div>
+                            <p>No prospects selected<br>Go to Search tab to find prospects</p>
+                        </div>
+                    </div>
+
+                    <div id="outreachActions" style="display: none; margin-top: 16px;">
+                        <button onclick="sendToSelected()" class="btn btn-primary" style="width: 100%;">
+                            📤 Send to Selected (<span id="sendCount">0</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sent Messages Tab -->
+            <div id="sentTab" class="tab-content">
+                <div class="content-header">
+                    <h1>✉️ Sent Messages</h1>
+                    <p>Track all your outreach messages and responses</p>
+                </div>
+
+                <div class="card">
+                    <h2>Outreach History</h2>
+
+                    <div id="sentMessagesList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✉️</div>
+                            <p>No messages sent yet<br>Start your outreach to track results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div id="notificationsTab" class="tab-content">
+                <div class="content-header">
+                    <h1>🔔 Notifications</h1>
+                    <p>Stay updated with responses and activities</p>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 style="margin: 0;">Recent Activity</h2>
+                        <button onclick="markAllAsRead()" class="btn btn-secondary" style="padding: 6px 14px;">
+                            Mark All as Read
+                        </button>
+                    </div>
+
+                    <div id="notificationsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔔</div>
+                            <p>No notifications yet<br>Activity updates will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <div class="content-header">
+                    <h1>⚙️ Settings</h1>
+                    <p>Configure your automation preferences</p>
+                </div>
+
+                <div class="card">
+                    <h2>Automation Settings</h2>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="autoFollowUp" checked style="margin-right: 8px;">
+                            Enable automatic follow-ups
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Follow-up delay (days)</label>
+                        <input type="number" id="followUpDelay" value="3" min="1" max="14">
+                        <span class="field-hint">Days to wait before sending a follow-up</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maximum follow-up attempts</label>
+                        <input type="number" id="maxFollowUp" value="2" min="1" max="5">
+                        <span class="field-hint">Maximum number of follow-up messages per prospect</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Daily outreach limit</label>
+                        <input type="number" id="dailyLimit" value="20" min="1" max="50">
+                        <span class="field-hint">Maximum messages to send per day</span>
+                    </div>
+
+                    <h3 style="margin-top: 32px; margin-bottom: 16px;">Notification Preferences</h3>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableNotifications" checked style="margin-right: 8px;">
+                            Enable browser notifications
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableEmailNotifications" style="margin-right: 8px;">
+                            Enable email notifications
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-border);">
+                        <button onclick="saveSettings()" class="btn btn-primary" id="saveSettingsBtn">
+                            Save Settings
+                        </button>
+                        <button onclick="loadSettings()" class="btn btn-secondary" style="margin-left: 12px;">
+                            Reset to Saved
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define API_BASE_URL locally (don't rely on app.js)
+        const API_BASE_URL = "http://localhost:8001";
+
+        // Immediate log to verify script execution and localStorage access
+        console.log('========== ANALYZE.HTML SCRIPT LOADED ==========');
+        console.log('📍 Current URL:', window.location.href);
+        console.log('📍 Origin:', window.location.origin);
+        console.log('📍 Protocol:', window.location.protocol);
+        console.log('📍 Hostname:', window.location.hostname);
+        console.log('📍 Port:', window.location.port);
+
+        // Test localStorage access BEFORE any other operations
+        let initialToken = null;
+        let initialEmail = null;
+        try {
+            initialToken = localStorage.getItem('token');
+            initialEmail = localStorage.getItem('user_email');
+            console.log('✅ localStorage accessible:', true);
+            console.log('🔑 Token exists:', !!initialToken);
+            console.log('🔑 Token length:', initialToken ? initialToken.length : 0);
+            console.log('🔑 Token preview:', initialToken ? initialToken.substring(0, 20) + '...' : 'null');
+            console.log('👤 User email:', initialEmail);
+
+            // Log all localStorage keys for debugging
+            const allKeys = Object.keys(localStorage);
+            console.log('📦 All localStorage keys:', allKeys);
+            console.log('📦 localStorage length:', localStorage.length);
+        } catch (e) {
+            console.error('❌ localStorage access error:', e);
+            alert('localStorage가 비활성화되어 있습니다. 브라우저 설정을 확인해주세요.');
+        }
+
+        // Variables
+        let prospects = [];
+        let selectedProspects = new Set();
+        let sentMessages = [];
+        let notifications = [];
+        let currentAutomationJob = null;
+        let automationRefreshInterval = null;
+
+        // Initialize page with proper async auth check
+        async function initializePage() {
+            console.log('========== initializePage() CALLED ==========');
+            // Check auth synchronously first
+            const token = localStorage.getItem('token');
+            const userEmail = localStorage.getItem('user_email');
+
+            console.log('Initialization check:', {
+                hasToken: !!token,
+                tokenLength: token ? token.length : 0,
+                userEmail: userEmail
+            });
+
+            if (!token) {
+                console.error('❌ NO TOKEN FOUND - Auth failed!');
+                console.log('Redirect will happen in 3 seconds...');
+                console.log('Please check:');
+                console.log('1. Did you login successfully?');
+                console.log('2. Check localStorage in console: localStorage.getItem("token")');
+                console.log('3. Are you using incognito/private mode?');
+
+                alert('세션이 만료되었습니다. 다시 로그인해주세요.\n\n디버깅: 콘솔을 확인해주세요.');
+
+                // Delay redirect to allow user to see console logs
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 3000);
+                return;
+            }
+
+            // Token found! Proceed with initialization
+            console.log('✅ TOKEN FOUND - Auth successful!');
+            console.log('Proceeding with page initialization...');
+
+            // Show logged-in navigation menu
+            document.getElementById('loggedInMenu').style.display = 'flex';
+            document.getElementById('loggedOutMenu').style.display = 'none';
+
+            // Update UI with user info
+            if (userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+
+            // Now load automation data after auth is confirmed
+            try {
+                console.log('Loading settings and automation status...');
+                await Promise.all([
+                    loadSettings(),
+                    loadAutomationStatus(),
+                    loadAutomationCampaigns()  // Load campaigns for dropdown
+                ]);
+                console.log('✅ Page initialization complete!');
+            } catch (error) {
+                console.error('❌ Initialization error:', error);
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
+        }
+
+        // Wait for DOM to be ready before initializing
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            // DOM already loaded, initialize immediately
+            initializePage();
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/index.html';
+                return;
+            }
+
+            const userEmail = localStorage.getItem('user_email');
+            if (userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        async function searchProspects() {
+            const btn = document.getElementById('searchBtn');
+            const keywords = document.getElementById('searchKeywords').value.trim();
+
+            if (!keywords) {
+                alert('Please enter search keywords');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Searching...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/linkedin/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        query: keywords,
+                        location: document.getElementById('searchLocation').value,
+                        industry: document.getElementById('searchIndustry').value,
+                        limit: parseInt(document.getElementById('maxResults').value)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.prospects) {
+                    prospects = data.prospects;
+                    displayProspects(prospects);
+                    addNotification('search', `Found ${prospects.length} new prospects matching "${keywords}"`);
+                    document.getElementById('totalProspects').textContent = prospects.length;
+                } else {
+                    alert(data.detail || 'Failed to search prospects. Make sure LinkedIn is connected.');
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                alert('Error searching prospects. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 Search Prospects';
+            }
+        }
+
+        function displayProspects(prospectsList) {
+            const container = document.getElementById('prospectsList');
+            document.getElementById('prospectCount').textContent = prospectsList.length;
+
+            if (prospectsList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>No prospects found<br>Try different search criteria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = prospectsList.map((prospect, index) => `
+                <div class="prospect-item">
+                    <div class="prospect-info">
+                        <h4>${prospect.name || 'Unknown'}</h4>
+                        <p>${prospect.title || 'No title'}</p>
+                        <p>${prospect.company || 'No company'}</p>
+                        ${prospect.location ? `<p>📍 ${prospect.location}</p>` : ''}
+                    </div>
+                    <input type="checkbox" onchange="toggleProspect(${index})" id="checkbox-${index}" style="width: 18px; height: 18px; cursor: pointer;">
+                </div>
+            `).join('');
+        }
+
+        function toggleProspect(index) {
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            if (checkbox.checked) {
+                selectedProspects.add(index);
+            } else {
+                selectedProspects.delete(index);
+            }
+            updateSelectedCount();
+            updateSelectedProspectsList();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedProspects.size;
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('sendCount').textContent = count;
+            document.getElementById('outreachActions').style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function updateSelectedProspectsList() {
+            const container = document.getElementById('selectedProspectsList');
+
+            if (selectedProspects.size === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📤</div>
+                        <p>No prospects selected<br>Go to Search tab to find prospects</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const selected = Array.from(selectedProspects).map(index => {
+                const prospect = prospects[index];
+                return `
+                    <div class="prospect-item">
+                        <div class="prospect-info">
+                            <h4>${prospect.name || 'Unknown'}</h4>
+                            <p>${prospect.title || 'No title'}</p>
+                            <p>${prospect.company || 'No company'}</p>
+                        </div>
+                        <button onclick="removeProspect(${index})" class="btn btn-secondary" style="padding: 6px 12px;">
+                            Remove
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = selected.join('');
+        }
+
+        function removeProspect(index) {
+            selectedProspects.delete(index);
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            if (checkbox) checkbox.checked = false;
+            updateSelectedCount();
+            updateSelectedProspectsList();
+        }
+
+        async function generateMessage() {
+            try {
+                // Get selected campaign from Automation section
+                const campaignSelect = document.getElementById('automationCampaignSelect');
+                const campaignId = campaignSelect.value;
+
+                if (!campaignId) {
+                    alert('Please select a campaign from the Automation section first.');
+                    return;
+                }
+
+                // Show loading state
+                const messageTextarea = document.getElementById('messageTemplate');
+                const generateBtn = event.target;
+                const originalBtnText = generateBtn.textContent;
+
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+                messageTextarea.placeholder = 'AI is generating your message...';
+
+                // Call new API endpoint to generate AI message
+                const response = await fetch(`${API_BASE_URL}/api/campaigns/${campaignId}/generate-message`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to generate message: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Fill the generated message into textarea
+                    messageTextarea.value = result.message_template;
+                    messageTextarea.placeholder = 'Enter your message template here...';
+
+                    // Show success feedback
+                    alert(`✅ AI message generated successfully for "${result.campaign_name}"!`);
+                } else {
+                    throw new Error('Failed to generate message');
+                }
+
+                // Restore button state
+                generateBtn.disabled = false;
+                generateBtn.textContent = originalBtnText;
+
+            } catch (error) {
+                console.error('Error generating message:', error);
+                alert('Failed to generate message. Please try again.');
+
+                // Restore button state
+                const generateBtn = event.target;
+                generateBtn.disabled = false;
+                generateBtn.textContent = '✨ Generate AI Message';
+
+                const messageTextarea = document.getElementById('messageTemplate');
+                messageTextarea.placeholder = 'Enter your message template here...';
+            }
+        }
+
+        async function sendToSelected() {
+            const message = document.getElementById('messageTemplate').value.trim();
+            if (!message) {
+                alert('Please enter or generate a message template');
+                return;
+            }
+
+            if (!confirm(`Send message to ${selectedProspects.size} selected prospects?`)) {
+                return;
+            }
+
+            let successCount = 0;
+            for (const index of selectedProspects) {
+                const prospect = prospects[index];
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                sentMessages.push({
+                    prospect: prospect,
+                    message: message,
+                    sentAt: new Date(),
+                    status: 'sent'
+                });
+
+                successCount++;
+            }
+
+            selectedProspects.clear();
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateSelectedCount();
+            updateSelectedProspectsList();
+
+            document.getElementById('sentBadge').textContent = sentMessages.length;
+            document.getElementById('totalSent').textContent = sentMessages.length;
+            loadSentMessages();
+            addNotification('sent', `Successfully sent ${successCount} messages`);
+
+            alert(`Successfully sent ${successCount} messages!`);
+        }
+
+        function loadSentMessages() {
+            const container = document.getElementById('sentMessagesList');
+
+            if (sentMessages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✉️</div>
+                        <p>No messages sent yet<br>Start your outreach to track results</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sentMessages.map((msg, index) => `
+                <div class="prospect-item" style="flex-direction: column; align-items: flex-start;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                        <div>
+                            <h4>${msg.prospect.name}</h4>
+                            <p>${msg.prospect.company || 'No company'} • ${new Date(msg.sentAt).toLocaleDateString()}</p>
+                        </div>
+                        <span class="status-badge ${msg.status}">${msg.status}</span>
+                    </div>
+                    <div class="message-preview">${msg.message}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadNotifications() {
+            const container = document.getElementById('notificationsList');
+
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔔</div>
+                        <p>No notifications yet<br>Activity updates will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = notifications.map((notif, index) => `
+                <div class="notification-item ${notif.read ? '' : 'unread'}">
+                    <div class="notification-icon">${notif.icon}</div>
+                    <div class="notification-content">
+                        <h4>${notif.title}</h4>
+                        <p>${notif.message}</p>
+                        <span class="notification-time">${new Date(notif.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            const unreadCount = notifications.filter(n => !n.read).length;
+            const badge = document.getElementById('notificationBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function addNotification(type, message) {
+            const icons = {
+                search: '🔍',
+                sent: '📤',
+                response: '💬',
+                error: '❌'
+            };
+
+            notifications.unshift({
+                icon: icons[type] || 'ℹ️',
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                message: message,
+                timestamp: new Date(),
+                read: false
+            });
+
+            loadNotifications();
+
+            if (Notification.permission === 'granted') {
+                new Notification('GrowthPilot', { body: message });
+            }
+        }
+
+        function markAllAsRead() {
+            notifications.forEach(n => n.read = true);
+            loadNotifications();
+        }
+
+        // Load settings on page load
+        async function loadSettings() {
+            const response = await fetch(`${API_BASE_URL}/api/automation/settings`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Session expired - clear token and redirect
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user_email');
+                    window.location.href = '/index.html';
+                    throw new Error('Session expired');
+                }
+                // For other errors, just return silently (settings may not exist yet)
+                return;
+            }
+
+            const settings = await response.json();
+
+            // Update form fields
+            document.getElementById('autoFollowUp').checked = settings.auto_followup_enabled;
+            document.getElementById('followUpDelay').value = settings.followup_delay_days;
+            document.getElementById('maxFollowUp').value = settings.max_followup_count;
+            document.getElementById('dailyLimit').value = settings.daily_limit;
+            document.getElementById('enableNotifications').checked = settings.browser_notifications;
+            document.getElementById('enableEmailNotifications').checked = settings.email_notifications;
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('saveSettingsBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const settings = {
+                    auto_followup_enabled: document.getElementById('autoFollowUp').checked,
+                    followup_delay_days: parseInt(document.getElementById('followUpDelay').value),
+                    max_followup_count: parseInt(document.getElementById('maxFollowUp').value),
+                    daily_limit: parseInt(document.getElementById('dailyLimit').value),
+                    browser_notifications: document.getElementById('enableNotifications').checked,
+                    email_notifications: document.getElementById('enableEmailNotifications').checked
+                };
+
+                const response = await fetch(`${API_BASE_URL}/api/automation/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save settings');
+                }
+
+                alert('Settings saved successfully!');
+
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Failed to save settings. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Settings';
+            }
+        }
+
+        // Load campaigns into automation dropdown
+        async function loadAutomationCampaigns() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/campaigns`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load campaigns');
+                }
+
+                const campaigns = await response.json();
+                const select = document.getElementById('automationCampaignSelect');
+
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">-- Select a campaign --</option>';
+
+                // Add campaign options
+                campaigns.forEach(campaign => {
+                    const option = document.createElement('option');
+                    option.value = campaign.id;
+                    option.textContent = `${campaign.product_name} (${campaign.language_pref})`;
+                    select.appendChild(option);
+                });
+
+                console.log(`Loaded ${campaigns.length} campaigns into automation dropdown`);
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+            }
+        }
+
+        // Automation Functions
+        async function startAutomation() {
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please log in to start automation');
+                window.location.href = '/index.html';
+                return;
+            }
+
+            const campaignId = document.getElementById('automationCampaignSelect').value;
+            const keywords = document.getElementById('automationKeywords').value.trim();
+            const message = document.getElementById('messageTemplate').value.trim();
+
+            // Validation
+            if (!campaignId) {
+                alert('캠페인을 선택해주세요 (Please select a campaign)');
+                return;
+            }
+
+            if (!keywords) {
+                alert('Please enter search keywords');
+                return;
+            }
+
+            if (!message) {
+                alert('Please enter or generate a message template');
+                return;
+            }
+
+            try {
+                const btn = document.getElementById('startAutomationBtn');
+                btn.disabled = true;
+                btn.textContent = 'Starting...';
+
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        campaign_id: parseInt(campaignId),  // Include campaign_id
+                        search_keywords: keywords,
+                        message_template: message
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Session expired. Please log in again.');
+                        localStorage.removeItem('token');
+                        window.location.href = '/index.html';
+                        return;
+                    }
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Failed to start automation');
+                }
+
+                const job = await response.json();
+                currentAutomationJob = job;
+
+                // Update UI
+                document.getElementById('automationStatus').style.display = 'block';
+                document.getElementById('startAutomationBtn').style.display = 'none';
+                document.getElementById('currentKeywords').textContent = keywords;
+
+                // Start refresh interval
+                automationRefreshInterval = setInterval(loadAutomationStatus, 5000);
+                loadAutomationStatus();
+
+                addNotification('automation', 'Automation started successfully');
+                alert('Automation started! It will run in the background every 10 minutes.');
+
+            } catch (error) {
+                console.error('Error starting automation:', error);
+                alert(error.message || 'Failed to start automation. Please try again.');
+                const btn = document.getElementById('startAutomationBtn');
+                btn.disabled = false;
+                btn.textContent = '🚀 Start Automation';
+            }
+        }
+
+        async function loadAutomationStatus() {
+            if (!currentAutomationJob) {
+                // Try to load existing jobs
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Session expired - clear token and redirect
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user_email');
+                        window.location.href = '/index.html';
+                        throw new Error('Session expired');
+                    }
+                    // For other errors, just return silently (jobs may not exist yet)
+                    return;
+                }
+
+                const jobs = await response.json();
+                if (jobs.length > 0) {
+                    currentAutomationJob = jobs[0];
+                }
+            }
+
+            if (!currentAutomationJob) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load automation stats');
+                }
+
+                const stats = await response.json();
+
+                // Update UI
+                document.getElementById('dailySent').textContent = stats.daily_sent;
+                document.getElementById('dailyLimit').textContent = stats.daily_limit;
+                document.getElementById('totalSentCount').textContent = stats.total_sent;
+                document.getElementById('remainingQuota').textContent = stats.remaining_quota;
+
+                // Update next run time
+                if (stats.next_run) {
+                    const nextRun = new Date(stats.next_run);
+                    const now = new Date();
+                    const diffMinutes = Math.round((nextRun - now) / 1000 / 60);
+
+                    if (diffMinutes > 0) {
+                        document.getElementById('nextRun').textContent = `${diffMinutes} min`;
+                    } else {
+                        document.getElementById('nextRun').textContent = 'Soon';
+                    }
+                } else {
+                    document.getElementById('nextRun').textContent = '-';
+                }
+
+                // Update status badge
+                const statusBadge = document.getElementById('jobStatus');
+                statusBadge.textContent = stats.status.charAt(0).toUpperCase() + stats.status.slice(1);
+                statusBadge.className = `status-badge ${stats.status}`;
+
+                // Update pause/resume button
+                const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+                if (stats.status === 'active') {
+                    pauseResumeBtn.textContent = '⏸️ Pause';
+                    pauseResumeBtn.onclick = () => toggleAutomation();
+                } else if (stats.status === 'paused') {
+                    pauseResumeBtn.textContent = '▶️ Resume';
+                    pauseResumeBtn.onclick = () => toggleAutomation();
+                }
+
+                // Show automation status section
+                document.getElementById('automationStatus').style.display = 'block';
+                document.getElementById('startAutomationBtn').style.display = 'none';
+                document.getElementById('currentKeywords').textContent = currentAutomationJob.search_keywords;
+
+            } catch (error) {
+                console.error('Error loading automation status:', error);
+            }
+        }
+
+        async function toggleAutomation() {
+            if (!currentAutomationJob) return;
+
+            try {
+                const currentStatus = document.getElementById('jobStatus').textContent.toLowerCase();
+                const endpoint = currentStatus === 'active' ? 'pause' : 'resume';
+
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}/${endpoint}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to ${endpoint} automation`);
+                }
+
+                const job = await response.json();
+                currentAutomationJob = job;
+
+                loadAutomationStatus();
+                addNotification('automation', `Automation ${endpoint}d`);
+
+            } catch (error) {
+                console.error('Error toggling automation:', error);
+                alert(`Failed to ${currentStatus === 'active' ? 'pause' : 'resume'} automation`);
+            }
+        }
+
+        async function stopAutomation() {
+            if (!currentAutomationJob) return;
+
+            if (!confirm('Are you sure you want to stop the automation? This will delete the job.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/automation/jobs/${currentAutomationJob.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to stop automation');
+                }
+
+                // Clear interval
+                if (automationRefreshInterval) {
+                    clearInterval(automationRefreshInterval);
+                    automationRefreshInterval = null;
+                }
+
+                // Reset UI
+                currentAutomationJob = null;
+                document.getElementById('automationStatus').style.display = 'none';
+                document.getElementById('startAutomationBtn').style.display = 'block';
+                document.getElementById('automationKeywords').value = '';
+
+                addNotification('automation', 'Automation stopped');
+                alert('Automation stopped successfully');
+
+            } catch (error) {
+                console.error('Error stopping automation:', error);
+                alert('Failed to stop automation');
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_email');
+            window.location.href = '/index.html';
+        }
+
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+---
+version: "1.0"
+name: "GrowthPilot Outreach Automation"
+description: "AI-powered SaaS outreach chain for LinkedIn, Reddit, and Facebook"
+
+metadata:
+  author: "GrowthPilot"
+  created: "2025-10-20"
+  model: "claude-sonnet-4-5-20250929"
+  output_format: "json_only"
+
+# Global system prompt applied to all agents
+system_prompt: |
+  You are "GrowthPilot", an AI growth copilot for SaaS founders.
+
+  Your purpose:
+  - Understand SaaS descriptions and deduce Ideal Customer Profile (ICP)
+  - Generate personalized outreach content for LinkedIn, Reddit, and Facebook
+  - Always follow platform rules and anti-spam policies
+  - Respond **ONLY** with valid JSON matching the requested schema
+  - Do not output explanations, markdown, or prose outside JSON
+
+  Platform Rules:
+  1. LinkedIn → Formal, concise, value-first (280 chars max)
+  2. Reddit → Conversational, friendly, minimal links (5 sentences max)
+  3. Facebook → Community-friendly, positive tone (6 sentences max)
+  4. Never promise guaranteed results or use manipulative wording
+  5. Always include disclosure when promoting own product
+
+  Compliance:
+  - No financial guarantees or investment advice
+  - No aggressive selling or urgency tactics
+  - Respect platform link policies
+  - Human-like, helpful tone
+
+# Input schema validation
+input_schema:
+  type: object
+  required: [product_name, description]
+  properties:
+    product_name:
+      type: string
+      description: "Name of the SaaS product"
+    description:
+      type: string
+      description: "What the product does and its value proposition"
+    target_audience_hint:
+      type: string
+      description: "Optional hints about target customers"
+    locales:
+      type: array
+      items:
+        type: string
+      default: ["US"]
+    language_pref:
+      type: string
+      default: "en"
+    channels:
+      type: array
+      items:
+        enum: [linkedin, reddit, facebook]
+      default: [linkedin, reddit, facebook]
+    tone:
+      enum: [friendly, expert, concise]
+      default: friendly
+    cta:
+      type: string
+      default: "free beta?"
+    exclusions:
+      type: array
+      items:
+        type: string
+      default: []
+
+# Agent chain execution pipeline
+agents:
+  # ====================================
+  # AGENT 1: ICP Planner
+  # ====================================
+  - id: icp_planner
+    name: "ICP Planner"
+    role: "Ideal Customer Profile Generator"
+    description: "Analyzes product and generates target customer profile with search parameters"
+
+    prompt: |
+      ROLE: ICP Planner
+      TASK: From the product description, infer an Ideal Customer Profile (ICP) and search parameters per platform.
+
+      INPUT:
+      - product_name: {{product_name}}
+      - description: {{description}}
+      - target_audience_hint: {{target_audience_hint}}
+      - locales: {{locales}}
+      - language_pref: {{language_pref}}
+      - exclusions: {{exclusions}}
+
+      CONSTRAINTS:
+      - Keep it practical: roles, industries, interests people actually list
+      - Include platform-specific search knobs (LinkedIn title/industry, Reddit subs/keywords, Facebook groups/keywords)
+      - Include 5~10 root keywords and 10~30 long-tail queries
+      - Consider cultural and regional differences
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "icp": {
+          "roles": ["Retail Investor", "Finance Blogger", "Day Trader"],
+          "industries": ["Finance", "Fintech", "Investment Management"],
+          "seniority": ["Individual", "Solo-Founder", "Analyst"],
+          "regions": ["US", "Singapore", "India"],
+          "languages": ["en"]
+        },
+        "keywords": {
+          "root": ["stock investing", "AI investing", "stock analysis"],
+          "long_tail": ["find trending stocks", "ai stock screener", "stock market prediction tool"]
+        },
+        "platform_search": {
+          "linkedin": {
+            "titles": ["Investor", "Trader", "Finance Creator"],
+            "industries": ["Financial Services", "Investment Management"],
+            "regions": ["United States", "Singapore", "India"]
+          },
+          "reddit": {
+            "subreddits": ["stocks", "investing", "FinTech", "SideProject"],
+            "query": ["best tool for stock", "ai stock analysis", "stock screener recommendation"]
+          },
+          "facebook": {
+            "groups_query": ["SaaS founders", "retail investors", "stock trading beginners"],
+            "interests": ["stock market", "ETF", "swing trading", "fintech"]
+          }
+        }
+      }
+
+    output_schema:
+      type: object
+      required: [icp, keywords, platform_search]
+
+  # ====================================
+  # AGENT 2: Query Builder
+  # ====================================
+  - id: query_builder
+    name: "Prospect Query Builder"
+    role: "Search Query Generator"
+    description: "Converts ICP into platform-specific search queries"
+    depends_on: [icp_planner]
+
+    prompt: |
+      ROLE: Prospect Query Builder
+      TASK: Turn the ICP/plans into normalized, tool-ready search queries per platform.
+
+      INPUT (JSON from ICP Planner):
+      {{icp_planner.output}}
+
+      CONSTRAINTS:
+      - Emit clean, deduplicated query objects per platform
+      - Include soft/hard filters (language, region)
+      - Include a "match_score_formula" heuristic for post-filtering
+      - Optimize for API efficiency (avoid redundant queries)
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "linkedin_queries": [
+          {
+            "titles": ["Investor", "Trader"],
+            "industries": ["Financial Services"],
+            "regions": ["United States"],
+            "keywords": ["stock", "investing"],
+            "language": "en"
+          }
+        ],
+        "reddit_queries": [
+          {
+            "subreddits": ["stocks", "investing"],
+            "keywords": ["AI stock tool", "stock analysis"],
+            "time_range": "7d",
+            "min_karma": 50
+          }
+        ],
+        "facebook_queries": [
+          {
+            "groups_keywords": ["retail investors", "stock trading"],
+            "interests": ["stock market", "ETF"],
+            "regions": ["US"],
+            "language": "en"
+          }
+        ],
+        "match_score_formula": "0.4*title_match + 0.3*keyword_overlap + 0.2*region_match + 0.1*recent_activity"
+      }
+
+    output_schema:
+      type: object
+      required: [linkedin_queries, reddit_queries, facebook_queries, match_score_formula]
+
+  # ====================================
+  # AGENT 3a: LinkedIn Copy Generator
+  # ====================================
+  - id: linkedin_generator
+    name: "LinkedIn Copy Generator"
+    role: "LinkedIn Message Creator"
+    description: "Generates professional LinkedIn DMs and connection requests"
+    depends_on: [icp_planner]
+
+    prompt: |
+      ROLE: LinkedIn Copy Generator
+      TASK: Generate human, value-first LinkedIn outreach messages.
+
+      INPUT:
+      - product: {{product_name}} | {{description}}
+      - tone: {{tone}}
+      - persona: {{icp_planner.output.icp.roles[0]}}
+      - cta: {{cta}}
+      - variants: 2
+
+      CONSTRAINTS:
+      - 280 chars max per variant
+      - Avoid hype or guaranteed returns. No financial advice
+      - Sound like a human. 1 emoji max optional
+      - Start with value, not pitch
+      - Personalize when possible
+      - Clear, single CTA
+
+      EXAMPLES:
+      - "Hey [Name], noticed you're into [interest]. Built a tool that [value]. Want to try the beta?"
+      - "Hi [Name], love your posts on [topic]. I'm testing an AI that [specific benefit]. Curious to get your feedback?"
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "variants": [
+          { "message": "Hey Alex, I built an AI that spots trending stocks early using news/sentiment signals. Want to try the beta? Would love your feedback as an active investor." },
+          { "message": "Hi Alex, saw your interest in stock analysis tools. Testing an AI screener that caught NVDA +40% run early. Free beta—curious what you think?" }
+        ]
+      }
+
+    output_schema:
+      type: object
+      required: [variants]
+      properties:
+        variants:
+          type: array
+          minItems: 2
+          maxItems: 3
+
+  # ====================================
+  # AGENT 3b: Reddit Copy Generator
+  # ====================================
+  - id: reddit_generator
+    name: "Reddit Copy Generator"
+    role: "Reddit Comment/Post Creator"
+    description: "Generates helpful Reddit comments and posts"
+    depends_on: [icp_planner]
+
+    prompt: |
+      ROLE: Reddit Copy Generator
+      TASK: Write a genuine, helpful comment OR post for Reddit.
+
+      INPUT:
+      - post_type: "comment"
+      - subreddit_rules: "Be helpful, minimize self-promo, max 1 link"
+      - context_summary: "User asking for stock analysis tool recommendations"
+      - product_pitch: {{description}}
+      - link_policy: "one_link"
+      - tone: "conversational"
+      - variants: 2
+
+      CONSTRAINTS:
+      - 2–5 sentences; remove corporate tone
+      - If link_policy=no_link, DO NOT include links; suggest DM if needed
+      - Include disclosure: "I'm testing a small tool I'm building…" or "Full disclosure: I built this…"
+      - Be genuinely helpful first, promotional second
+      - Match Reddit culture (casual, authentic)
+
+      EXAMPLES:
+      - "I've been testing a few tools lately. One that's worked well is [tool] - caught the NVDA run early with sentiment analysis. Full disclosure: I'm one of the builders, happy to share beta access if you want to try."
+      - "Not affiliated, but I've heard good things about [X] and [Y]. Also building a similar tool focused on [specific feature] if you want to check it out (still in beta)."
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "variants": [
+          { "body": "I've been using a few screeners—one that worked well caught NVDA's +40% run using AI sentiment. Full disclosure: I'm building it. Still in beta but happy to share if useful. DM me!" },
+          { "body": "Check out TradingView for basics. Also testing an AI tool I'm building that spots momentum early (caught NVDA). Free beta if you want—just DM." }
+        ]
+      }
+
+    output_schema:
+      type: object
+      required: [variants]
+
+  # ====================================
+  # AGENT 3c: Facebook Copy Generator
+  # ====================================
+  - id: facebook_generator
+    name: "Facebook Copy Generator"
+    role: "Facebook Post/DM Creator"
+    description: "Generates friendly Facebook group posts and DMs"
+    depends_on: [icp_planner]
+
+    prompt: |
+      ROLE: Facebook Copy Generator
+      TASK: Create a friendly post or DM that fits group culture.
+
+      INPUT:
+      - mode: "group_post"
+      - group_theme: "Retail investors sharing tips"
+      - product_short: {{description}}
+      - give_value_first: true
+      - cta: {{cta}}
+      - language: {{language_pref}}
+      - variants: 2
+
+      CONSTRAINTS:
+      - 3–6 sentences. Start with value/insight; CTA at the end
+      - Respect group culture (no aggressive selling)
+      - No exaggerated claims
+      - Friendly, conversational tone
+      - Include community value (tip, insight, question)
+
+      EXAMPLES:
+      - "Quick tip: I've been tracking momentum stocks with AI sentiment analysis and it's been solid (caught NVDA early). Built a free tool if anyone wants to test—feedback welcome! 🚀"
+      - "Anyone else struggling to find trending stocks before they pop? I built an AI screener that's working well so far. Free beta—happy to share the link if useful!"
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "variants": [
+          { "text": "Been testing AI sentiment analysis for stocks—caught NVDA's +40% run early. Built a free tool for this if anyone wants to try. Still in beta, feedback super helpful! 📈" },
+          { "text": "Quick share: Found a pattern using AI to spot momentum stocks early (worked on NVDA, TSLA). Built a free screener—DM me if you want beta access! Always looking for feedback." }
+        ]
+      }
+
+    output_schema:
+      type: object
+      required: [variants]
+
+  # ====================================
+  # AGENT 4: Policy Reviewer
+  # ====================================
+  - id: policy_reviewer
+    name: "Policy & Compliance Reviewer"
+    role: "Content Safety Checker"
+    description: "Reviews generated content for platform compliance and anti-spam"
+    depends_on: [linkedin_generator, reddit_generator, facebook_generator]
+
+    prompt: |
+      ROLE: Policy & Spam Reviewer
+      TASK: Review the generated copy for safety, platform compliance, and spamminess. Fix if needed.
+
+      INPUT:
+      - platform: {{current_platform}}
+      - copy: {{current_generator.output}}
+      - rules: {{platform_rules[current_platform]}}
+      - link_policy: {{link_policy}}
+
+      PLATFORM RULES:
+      LinkedIn:
+        - max_chars: 280
+        - links: "one_link"
+        - tone: "value_first"
+        - ban: ["financial guarantees", "spammy urgency", "get rich quick"]
+
+      Reddit:
+        - max_sentences: 5
+        - links: "no_link_or_one_link"
+        - tone: "conversational"
+        - ban: ["pure self-promo", "multi-link dumping", "misleading claims"]
+
+      Facebook:
+        - max_sentences: 6
+        - links: "one_link"
+        - tone: "friendly"
+        - ban: ["aggressive selling", "misleading claims", "urgency manipulation"]
+
+      CHECKLIST:
+      ✓ Helpful, not pushy
+      ✓ No financial guarantees or misleading claims
+      ✓ Tone matches platform
+      ✓ Link policy respected
+      ✓ Under length limits
+      ✓ Includes disclosure if self-promotional
+      ✓ No prohibited words or patterns
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "status": "pass",
+        "reasons": [],
+        "revised": {
+          "variants": [
+            { "message": "..." }
+          ]
+        }
+      }
+
+      OR if issues found:
+      {
+        "status": "revise",
+        "reasons": ["Too long (320 chars, max 280)", "Missing disclosure"],
+        "revised": {
+          "variants": [
+            { "message": "CORRECTED VERSION HERE" }
+          ]
+        }
+      }
+
+    output_schema:
+      type: object
+      required: [status, reasons, revised]
+
+  # ====================================
+  # AGENT 5: Conversation Analyst
+  # ====================================
+  - id: conversation_analyst
+    name: "Response Analyzer"
+    role: "Reply Classifier & Follow-up Generator"
+    description: "Analyzes prospect replies and suggests next message"
+
+    prompt: |
+      ROLE: Conversation Analyst
+      TASK: Classify the user's reply and propose the next best message.
+
+      INPUT:
+      - original_message: {{sent_message}}
+      - reply: {{incoming_text}}
+      - platform: {{platform}}
+      - context: {{context}}
+
+      CLASSIFICATION LABELS:
+      - "positive_interest": Wants to try, asks for link, says yes
+      - "neutral": Acknowledges but no clear action
+      - "not_now": Interested but timing is bad
+      - "rejected": Not interested, says no
+      - "questions_more": Has questions, needs clarification
+      - "spam_flag": Reports as spam or inappropriate
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "classification": "positive_interest",
+        "confidence": 0.92,
+        "sentiment": "positive",
+        "suggested_followup": "Awesome! Here's the beta link: [URL]. Takes ~2 min to try. Let me know what you think!",
+        "wait_time_hours": 0,
+        "priority": "high"
+      }
+
+      EXAMPLES:
+      Reply: "Sounds interesting, how does it work?"
+      → classification: "questions_more", followup: "It analyzes news + price momentum with AI. Free to try: [link]. Want a quick demo?"
+
+      Reply: "Not interested, thanks"
+      → classification: "rejected", followup: null, priority: "low"
+
+    output_schema:
+      type: object
+      required: [classification, confidence, suggested_followup]
+
+  # ====================================
+  # AGENT 6: Campaign Reporter
+  # ====================================
+  - id: campaign_reporter
+    name: "Performance Reporter"
+    role: "Analytics & Strategy Advisor"
+    description: "Summarizes campaign performance and recommends optimizations"
+
+    prompt: |
+      ROLE: Campaign Reporter
+      TASK: Summarize performance and recommend next steps.
+
+      INPUT:
+      - metrics: {{performance_metrics}}
+      - experiments: {{ab_test_data}}
+      - time_period: "7d"
+
+      EXAMPLE INPUT:
+      {
+        "metrics": {
+          "linkedin": { "sent": 180, "accepted": 46, "replied": 22, "clicks": 31, "conversions": 5 },
+          "reddit": { "posts": 6, "comments": 19, "clicks": 58, "conversions": 8 },
+          "facebook": { "posts": 5, "dms": 40, "clicks": 20, "conversions": 3 }
+        },
+        "experiments": {
+          "tones": ["friendly", "expert"],
+          "variants_tested": 2,
+          "best_cta": "free beta?"
+        }
+      }
+
+      OUTPUT (JSON EXACTLY):
+      {
+        "summary": "Reddit delivered highest CTR (7.1%) and conversion rate (13.8%). LinkedIn had best reply rate (12.2%).",
+        "insights": [
+          "Friendly tone outperformed expert tone by 34% on Reddit",
+          "LinkedIn messages under 250 chars got 2x more replies",
+          "CTA 'free beta?' performed 28% better than 'feedback?'"
+        ],
+        "next_actions": [
+          "Shift 20% of volume from Facebook to Reddit",
+          "Test new CTA variants: 'try it free?' vs 'join beta'",
+          "Reduce LinkedIn message length to <240 chars",
+          "Increase Reddit comment frequency to 5/day"
+        ],
+        "platform_rankings": {
+          "best_ctr": "reddit",
+          "best_conversion": "reddit",
+          "best_reply_rate": "linkedin",
+          "best_roi": "reddit"
+        }
+      }
+
+    output_schema:
+      type: object
+      required: [summary, insights, next_actions, platform_rankings]
+
+# Execution configuration
+execution:
+  mode: sequential  # or parallel for independent agents
+  retry_on_failure: true
+  max_retries: 2
+  timeout_seconds: 30
+  cache_results: true
+
+  # Parallel execution groups
+  parallel_groups:
+    - name: "copy_generation"
+      agents: [linkedin_generator, reddit_generator, facebook_generator]
+      wait_for: [icp_planner]
+
+# Output configuration
+output:
+  format: json
+  pretty_print: true
+  save_to_file: true
+  file_path: "./output/growth-campaign-{{timestamp}}.json"
+
+# Safety & compliance settings
+safety:
+  max_daily_sends:
+    linkedin: 200
+    reddit: 30
+    facebook: 50
+
+  cooldown_minutes:
+    linkedin: 5
+    reddit: 15
+    facebook: 10
+
+  require_approval: true  # Human approval before sending
+
+  blocked_phrases:
+    - "guaranteed returns"
+    - "get rich quick"
+    - "limited time only"
+    - "act now"
+    - "financial freedom"
+
+  required_disclosures:
+    - "I'm building this tool"
+    - "Full disclosure"
+    - "I'm one of the builders"
