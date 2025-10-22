@@ -7,19 +7,19 @@ from app.core.database import get_db
 from app.core.auth import get_current_active_user
 from app.models.user import User
 from app.models.automation_settings import AutomationSettings
-from app.models.automation_job import AutomationJob
 from app.schemas.automation import (
     AutomationSettingsCreate,
     AutomationSettingsUpdate,
     AutomationSettingsResponse
 )
-from app.schemas.automation_job import (
-    AutomationJobCreate,
-    AutomationJobUpdate,
-    AutomationJobResponse,
-    AutomationJobStats
-)
-from app.services.automation_scheduler import get_daily_limit
+# TODO: Re-enable when AutomationJob model is restored
+# from app.schemas.automation_job import (
+#     AutomationJobCreate,
+#     AutomationJobUpdate,
+#     AutomationJobResponse,
+#     AutomationJobStats
+# )
+# from app.services.automation_scheduler import get_daily_limit
 
 router = APIRouter(prefix="/api/automation", tags=["automation"])
 
@@ -113,9 +113,11 @@ async def create_automation_settings(
 
 
 # ============================================================================
-# AUTOMATION JOBS ENDPOINTS
+# AUTOMATION JOBS ENDPOINTS - DISABLED (AutomationJob model removed)
 # ============================================================================
+# TODO: Re-enable when AutomationJob model is restored
 
+"""
 @router.post("/jobs/start", response_model=AutomationJobResponse, status_code=status.HTTP_201_CREATED)
 async def start_automation_job(
     job_data: AutomationJobCreate,
@@ -320,3 +322,4 @@ async def delete_automation_job(
     db.commit()
 
     return None
+"""

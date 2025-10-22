@@ -8,7 +8,6 @@ from datetime import datetime
 from app.core.database import get_db
 from app.services.reddit_automation import reddit_automation
 from app.services.gemini_ai import generate_personalized_message
-from app.models.automation_job import AutomationJob
 from app.models.campaign import Campaign
 
 router = APIRouter(prefix="/api/reddit", tags=["reddit"])

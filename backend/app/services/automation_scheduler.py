@@ -8,7 +8,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.core.database import SessionLocal
-from app.models.automation_job import AutomationJob
 from app.models.automation_settings import AutomationSettings
 from app.models.campaign_interaction import CampaignInteraction
 # Lazy imports to avoid circular dependencies - not needed for basic API functionality
