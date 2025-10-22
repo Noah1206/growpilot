@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
 from app.core.config import settings
+from app.core.database import engine, Base
 from app.api import agents, campaigns, auth, tracking, analytics
 # from app.api import automation, reddit, twitter
 # from app.services.automation_scheduler import start_scheduler, stop_scheduler
@@ -13,12 +14,25 @@ from app.api import agents, campaigns, auth, tracking, analytics
 # Load environment variables from .env file
 load_dotenv()
 
+# Import all models to ensure they are registered with Base
+from app.models.campaign import Campaign
+from app.models.automation_job import AutomationJob
+from app.models.user import User
+from app.models.campaign_interaction import CampaignInteraction
+from app.models.link_click import LinkClick
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     # Startup
     print("🚀 Starting GrowthPilot API...")
+
+    # Create database tables
+    print("📊 Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables created successfully!")
+
     # start_scheduler()
     yield
     # Shutdown
