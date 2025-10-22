@@ -137,13 +137,25 @@
         // Load analytics data
         async function loadAnalytics() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/campaigns`, {
+                const response = await fetch(`${API_BASE_URL}/api/campaigns/`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
+                if (!response.ok) {
+                    console.error(`API Error: ${response.status} ${response.statusText}`);
+                    console.error(`URL: ${API_BASE_URL}/api/campaigns/`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const campaigns = await response.json();
+
+                // Ensure campaigns is an array
+                if (!Array.isArray(campaigns)) {
+                    console.error('Expected campaigns array, got:', campaigns);
+                    throw new Error('Invalid response format');
+                }
 
                 // Calculate stats
                 const totalCampaigns = campaigns.length;
@@ -168,6 +180,10 @@
 
             } catch (error) {
                 console.error('Error loading analytics:', error);
+                // Show empty state on error
+                document.getElementById('totalCampaigns').textContent = '0';
+                document.getElementById('totalSent').textContent = '0';
+                document.getElementById('totalProspects').textContent = '0';
             }
         }
 
