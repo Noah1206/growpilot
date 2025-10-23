@@ -47,7 +47,7 @@ class Settings(BaseSettings):
 
     # Rate Limiting
     max_daily_sends_linkedin: int = Field(default=200, env="MAX_DAILY_SENDS_LINKEDIN")
-    max_daily_sends_reddit: int = Field(default=30, env="MAX_DAILY_SENDS_REDDIT")
+    max_daily_sends_reddit: int = Field(default=2000, env="MAX_DAILY_SENDS_REDDIT")
     max_daily_sends_facebook: int = Field(default=50, env="MAX_DAILY_SENDS_FACEBOOK")
 
     # Platform Rules

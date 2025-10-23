@@ -13,7 +13,7 @@ psycopg2-binary==2.9.9  # PostgreSQL adapter for production
 google-generativeai==0.3.2
 
 # Social Media APIs
-praw==7.7.1  # Reddit API
+asyncpraw==7.7.1  # Reddit API (Async version)
 tweepy==4.14.0  # Twitter API
 
 # HTTP & Validation
