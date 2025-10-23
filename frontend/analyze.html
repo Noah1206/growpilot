@@ -707,7 +707,7 @@
                 <!-- Automation Card -->
                 <div class="card">
                     <h2>🤖 Automation</h2>
-                    <p style="color: #666; margin-bottom: 20px;">Set up 24-hour background automation with daily limits</p>
+                    <p style="color: #666; margin-bottom: 20px;">Set up automated outreach with AI-powered prospect discovery (searches 2000 users daily)</p>
 
                     <div class="form-group">
                         <label>Select Campaign *</label>
@@ -763,7 +763,7 @@
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px;">
                             <div>
                                 <div style="font-size: 12px; color: #666;">Today</div>
-                                <div style="font-size: 20px; font-weight: 600;"><span id="dailySent">0</span> / <span id="dailyLimit">20</span></div>
+                                <div style="font-size: 20px; font-weight: 600;"><span id="dailySent">0</span> / <span id="dailyLimit">2000</span></div>
                             </div>
                             <div>
                                 <div style="font-size: 12px; color: #666;">Total Sent</div>
@@ -880,8 +880,8 @@
 
                     <div class="form-group">
                         <label>Daily outreach limit</label>
-                        <input type="number" id="dailyLimit" value="20" min="1" max="50">
-                        <span class="field-hint">Maximum messages to send per day</span>
+                        <input type="number" id="dailyLimit" value="2000" min="1" max="5000">
+                        <span class="field-hint">Maximum messages to send per day (Reddit: 2000, Twitter: customizable)</span>
                     </div>
 
                     <h3 style="margin-top: 32px; margin-bottom: 16px;">Notification Preferences</h3>
@@ -1533,7 +1533,7 @@
                         search_keywords: keywords,
                         message_template: message,
                         use_ai_enhancement: useAiEnhancement,
-                        daily_limit: 20
+                        daily_limit: 2000
                     })
                 });
 

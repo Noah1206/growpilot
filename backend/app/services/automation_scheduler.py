@@ -210,11 +210,23 @@ async def process_reddit_job(job: AutomationJob, campaign, daily_limit: int, db:
         status='success'
     )
 
+    # Filter out users we've already contacted for this campaign
+    already_contacted = db.query(CampaignInteraction.prospect_name).filter(
+        CampaignInteraction.campaign_id == job.campaign_id,
+        CampaignInteraction.channel == "reddit",
+        CampaignInteraction.prospect_name.in_(unique_users)
+    ).all()
+    already_contacted_names = {row[0] for row in already_contacted}
+
+    # Filter to only new users we haven't contacted yet
+    new_users = [u for u in unique_users if u not in already_contacted_names]
+    logger.info(f"📊 {len(already_contacted_names)} users already contacted, {len(new_users)} new users to contact")
+
     # Send messages to users
     sent_count = 0
     remaining_slots = daily_limit - job.daily_sent_count
 
-    for username in unique_users[:remaining_slots]:
+    for username in new_users[:remaining_slots]:
         try:
             # Get user profile
             profile = await reddit_automation.get_user_profile(username)
@@ -359,11 +371,23 @@ async def process_twitter_job(job: AutomationJob, campaign, daily_limit: int, db
     unique_users = await twitter_automation.extract_unique_users(tweets)
     logger.info(f"Found {len(unique_users)} unique users")
 
+    # Filter out users we've already contacted for this campaign
+    already_contacted = db.query(CampaignInteraction.prospect_name).filter(
+        CampaignInteraction.campaign_id == job.campaign_id,
+        CampaignInteraction.channel == "twitter",
+        CampaignInteraction.prospect_name.in_(unique_users)
+    ).all()
+    already_contacted_names = {row[0] for row in already_contacted}
+
+    # Filter to only new users we haven't contacted yet
+    new_users = [u for u in unique_users if u not in already_contacted_names]
+    logger.info(f"📊 {len(already_contacted_names)} users already contacted, {len(new_users)} new users to contact")
+
     # Send messages to users
     sent_count = 0
     remaining_slots = daily_limit - job.daily_sent_count
 
-    for username in unique_users[:remaining_slots]:
+    for username in new_users[:remaining_slots]:
         try:
             # Get user profile
             profile = await twitter_automation.get_user_profile(username)
